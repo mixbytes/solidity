@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity ^0.4.15;
 
 import '../ownership/MultiownedControlled.sol';
 import 'zeppelin-solidity/contracts/token/StandardToken.sol';
