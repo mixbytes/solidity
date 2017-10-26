@@ -6,7 +6,7 @@ import '../../crowdsale/InvestmentAnalytics.sol';
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
-/// @title ICOPlate pre-sale contract. DONT use it in production!
+/// @title SimpleCrowdsaleTestHelper pre-sale contract. DON'T use it in production!
 contract SimpleCrowdsaleTestHelper is SimpleCrowdsaleBase, Ownable, ExternalAccountWalletConnector, InvestmentAnalytics {
     using SafeMath for uint256;
 

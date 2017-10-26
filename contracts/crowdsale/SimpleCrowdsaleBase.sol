@@ -118,7 +118,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
 
     /// @notice whether to apply hard cap check logic via getMaximumFunds() method 
     function hasHardCap() constant internal returns (bool) {
-        return true;
+        return getMaximumFunds() != 0;
     }
 
     /// @dev to be overridden in tests
