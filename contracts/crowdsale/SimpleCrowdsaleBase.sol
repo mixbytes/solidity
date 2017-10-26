@@ -65,14 +65,16 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
         uint startingWeiCollected = getWeiCollected();
         uint startingInvariant = this.balance.add(startingWeiCollected);
 
-        // return or update payment if needed
-        uint paymentAllowed = getMaximumFunds().sub(getWeiCollected());
-        assert(0 != paymentAllowed);
-
         uint change;
-        if (paymentAllowed < payment) {
-            change = payment.sub(paymentAllowed);
-            payment = paymentAllowed;
+        if (hasHardCap()) {
+            // return or update payment if needed
+            uint paymentAllowed = getMaximumFunds().sub(getWeiCollected());
+            assert(0 != paymentAllowed);
+
+            if (paymentAllowed < payment) {
+                change = payment.sub(paymentAllowed);
+                payment = paymentAllowed;
+            }
         }
 
         // issue tokens
@@ -82,7 +84,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
 
         // record payment
         storeInvestment(investor, payment);
-        assert(getWeiCollected() <= getMaximumFunds() && getWeiCollected() > startingWeiCollected);
+        assert((getWeiCollected() <= getMaximumFunds() || !hasHardCap()) && getWeiCollected() > startingWeiCollected);
         FundTransfer(investor, payment, true);
 
         if (getWeiCollected() == getMaximumFunds())
@@ -111,6 +113,11 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
 
     /// @dev says if crowdsale time bounds must be checked
     function mustApplyTimeCheck(address /*investor*/, uint /*payment*/) constant internal returns (bool) {
+        return true;
+    }
+
+    /// @notice whether to apply hard cap check logic via getMaximumFunds() method 
+    function hasHardCap() constant internal returns (bool) {
         return true;
     }
 
