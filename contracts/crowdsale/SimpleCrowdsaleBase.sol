@@ -87,7 +87,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
         assert((getWeiCollected() <= getMaximumFunds() || !hasHardCap()) && getWeiCollected() > startingWeiCollected);
         FundTransfer(investor, payment, true);
 
-        if (getWeiCollected() == getMaximumFunds())
+        if (getWeiCollected() == getMaximumFunds() && hasHardCap())
             finish();
 
         if (change > 0)
