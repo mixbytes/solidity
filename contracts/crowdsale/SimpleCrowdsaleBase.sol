@@ -11,6 +11,7 @@ pragma solidity ^0.4.15;
 
 import '../security/ArgumentsChecker.sol';
 import '../token/MintableMultiownedToken.sol';
+import '../token/MintableToken.sol';
 import './IInvestmentsWalletConnector.sol';
 import './ICrowdsaleStat.sol';
 import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
@@ -162,7 +163,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     // FIELDS
 
     /// @dev contract responsible for token accounting
-    MintableMultiownedToken public m_token;
+    MintableToken public m_token;
 
     uint m_tokensMinted;
 
