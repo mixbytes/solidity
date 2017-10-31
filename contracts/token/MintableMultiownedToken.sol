@@ -10,13 +10,11 @@
 pragma solidity ^0.4.15;
 
 import '../ownership/MultiownedControlled.sol';
-import './MintableToken.sol';
 import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 
 
-
 /// @title StandardToken which can be minted by another contract.
-contract MintableMultiownedToken is MintableToken, MultiownedControlled, StandardToken {
+contract MintableMultiownedToken is MultiownedControlled, StandardToken {
 
     /// @dev parameters of an extra token emission
     struct EmissionInfo {
@@ -27,6 +25,7 @@ contract MintableMultiownedToken is MintableToken, MultiownedControlled, Standar
         uint256 totalSupplyWas;
     }
 
+    event Mint(address indexed to, uint256 amount);
     event Emission(uint256 tokensCreated, uint256 totalSupplyWas, uint256 time);
     event Dividend(address indexed to, uint256 amount);
 
