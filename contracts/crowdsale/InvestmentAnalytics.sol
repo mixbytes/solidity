@@ -83,8 +83,9 @@ contract InvestmentAnalytics {
         }
     }
 
-    /// @dev callback
+    /// @dev callback which must be overridden
     function iaOnInvested(address /*investor*/, uint /*payment*/, bool /*usingPaymentChannel*/) internal {
+        assert(false);  // must be overridden
     }
 
 
