@@ -98,12 +98,12 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
     }
 
     /// @notice withdraw accumulated balance, called by payee in case crowdsale failed
-    function withdrawPayments()
+    function withdrawPayments(address payee)
         external
         nonReentrant
+        onlyController
         requiresState(State.REFUNDING)
     {
-        address payee = msg.sender;
         uint256 payment = m_weiBalances[payee];
 
         require(payment != 0);

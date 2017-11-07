@@ -123,7 +123,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
     // asserting that collected ether cant be withdrawn by investors
     async function checkNotWithdrawing(funds) {
         for (const from_ of [role.nobody, role.owner1, role.investor1, role.investor2, role.investor3])
-            await expectThrow(funds.withdrawPayments({from: from_}));
+            await expectThrow(funds.withdrawPayments(from_, {from: from_}));
     }
 
     // asserting that investments cant be made
@@ -378,18 +378,19 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
 
                 assert.equal(await funds.m_state(), 1);
 
-                await expectThrow(funds.withdrawPayments({from: role.investor3}));
-                await expectThrow(funds.withdrawPayments({from: role.owner3}));
-                await funds.withdrawPayments({from: role.investor2});
+                await expectThrow(funds.withdrawPayments(role.investor3, {from: crowdsale.address}));
+                await expectThrow(funds.withdrawPayments(role.owner3, {from: crowdsale.address}));
+                await expectThrow(funds.withdrawPayments(role.investor2, {from: role.investor2}));
+                await funds.withdrawPayments(role.investor2, {from: crowdsale.address});
                 await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(20, 'finney'));
 
-                await expectThrow(funds.withdrawPayments({from: role.nobody}));
+                await expectThrow(funds.withdrawPayments(role.nobody, {from: crowdsale.address}));
 
                 await checkNoTransfers(token);
                 await checkNotInvesting(crowdsale, token, funds);
                 await checkNotSendingEther(funds);
 
-                await funds.withdrawPayments({from: role.investor1});
+                await funds.withdrawPayments(role.investor1, {from: crowdsale.address});
                 await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(0, 'finney'));
           }]);
         }
