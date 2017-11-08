@@ -26,6 +26,7 @@ contract('FundsRegistry', function(accounts) {
 
         for (let payee of [role.controller, role.investor2, role.nobody]) {
             await expectThrow(instance.withdrawPayments(payee, {from: payee}));
+            await expectThrow(instance.withdrawPayments(payee, {from: role.controller}));
         }
 
         assert(await web3.eth.getBalance(instance.address).eq(initialBalance));
@@ -226,6 +227,7 @@ contract('FundsRegistry', function(accounts) {
 
         for (let from_ of [role.controller, role.owner1, role.nobody]) {
             await expectThrow(instance.withdrawPayments(from_, {from: role.controller}));
+            await expectThrow(instance.withdrawPayments(from_, {from: from_}));
         }
 
         let initial = await web3.eth.getBalance(role.investor1);
@@ -256,7 +258,7 @@ contract('FundsRegistry', function(accounts) {
         assert(await web3.eth.getBalance(instance.address).eq(web3.toWei(0, 'finney')));
 
         refund = (await web3.eth.getBalance(role.investor2)).sub(initial);
-        console.log('refff', refund, initial);
-        assert(refund.lte(web3.toWei(8, 'finney')) && refund.gt(web3.toWei(4, 'finney')));
+
+        assert(refund.eq(web3.toWei(8, 'finney')));
     });
 });

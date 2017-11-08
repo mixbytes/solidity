@@ -30,6 +30,9 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
     const defaultSettings = {
         // if true gathered ether goes to contract FundsRegistry, otherwise to pre-existed account
         usingFund: false,
+        // Crowdsale method to be called when want to withdraw payments from funds
+        usingFundCrowdsalewithdrawPaymentsMethod: 'withdrawPayments',
+
         // funds collected during previous sales and taken into consideration when computing caps
         preCollectedFunds: 0,
 
@@ -121,9 +124,12 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
     }
 
     // asserting that collected ether cant be withdrawn by investors
-    async function checkNotWithdrawing(funds) {
-        for (const from_ of [role.nobody, role.owner1, role.investor1, role.investor2, role.investor3])
-            await expectThrow(funds.withdrawPayments(from_, {from: from_}));
+    async function checkNotWithdrawing(crowdsale) {
+        for (const from_ of [role.nobody, role.owner1, role.investor1, role.investor2, role.investor3]) {
+            await expectThrow(
+                crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: from_})
+            );
+        }
     }
 
     // asserting that investments cant be made
@@ -196,9 +202,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
 
     tests.push(["test instantiation", async function() {
         const [sale, token, cash] = await ourInstantiate();
-
         assert.equal(await token.m_controller(), sale.address);
-
         await assertBalances(sale, token, cash, usingFund ? 0 : await web3.eth.getBalance(cash), 0);
     }]);
 
@@ -289,7 +293,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
                 await checkNoTransfers(token);
 
             if (usingFund) {
-                await checkNotWithdrawing(funds);
+                await checkNotWithdrawing(crowdsale);
                 await checkNotSendingEther(funds);
             }
 
@@ -302,7 +306,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
 
                 await checkNotInvesting(crowdsale, token, funds);
                 if (usingFund)
-                    await checkNotWithdrawing(funds);
+                    await checkNotWithdrawing(crowdsale);
             }
 
             const totalSupply = await token.totalSupply();
@@ -348,7 +352,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
 
             await checkNotInvesting(crowdsale, token, funds);
             if (usingFund)
-                await checkNotWithdrawing(funds);
+                await checkNotWithdrawing(crowdsale);
         }]);
 
         if (settings.softCap) {
@@ -378,19 +382,30 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
 
                 assert.equal(await funds.m_state(), 1);
 
-                await expectThrow(funds.withdrawPayments(role.investor3, {from: crowdsale.address}));
-                await expectThrow(funds.withdrawPayments(role.owner3, {from: crowdsale.address}));
-                await expectThrow(funds.withdrawPayments(role.investor2, {from: role.investor2}));
-                await funds.withdrawPayments(role.investor2, {from: crowdsale.address});
+                await expectThrow(
+                    crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor3})
+                );
+                await expectThrow(
+                    crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.owner3})
+                );
+                await expectThrow(
+                    crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor2})
+                );
+
+                await crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor2})
+
                 await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(20, 'finney'));
 
-                await expectThrow(funds.withdrawPayments(role.nobody, {from: crowdsale.address}));
+                await expectThrow(
+                    crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.nobody})
+                );
 
                 await checkNoTransfers(token);
                 await checkNotInvesting(crowdsale, token, funds);
                 await checkNotSendingEther(funds);
 
-                await funds.withdrawPayments(role.investor1, {from: crowdsale.address});
+                await crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor1})
+
                 await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(0, 'finney'));
           }]);
         }
@@ -422,7 +437,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
                 assert(web3.toBigNumber(web3.toWei(120, 'finney')).add(settings.preCollectedFunds).gt(settings.softCap));
 
             await checkNotInvesting(crowdsale, token, funds);
-            await checkNotWithdrawing(funds);
+            await checkNotWithdrawing(crowdsale);
 
             const x12125_initial = web3.eth.getBalance('0x1212500000000000000000000000000000000000');
             const x12126_initial = web3.eth.getBalance('0x1212600000000000000000000000000000000000');
@@ -439,7 +454,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
             await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(15, 'finney'));
 
             await checkNotInvesting(crowdsale, token, funds);
-            await checkNotWithdrawing(funds);
+            await checkNotWithdrawing(crowdsale);
         }]);
     }
 
