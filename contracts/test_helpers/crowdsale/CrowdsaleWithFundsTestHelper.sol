@@ -6,6 +6,7 @@ import '../../crowdsale/FundsRegistryWalletConnector.sol';
 import '../../crowdsale/SimpleCrowdsaleBase.sol';
 import '../../crowdsale/InvestmentAnalytics.sol';
 import '../../ownership/multiowned.sol';
+import '../../test_helpers/token/MintableMultiownedCirculatingTokenTestHelper.sol';
 
 
 /// @title CrowdsaleWithFundsTestHelper  USE ONLY FOR TEST PURPOSES
@@ -13,18 +14,20 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
     using SafeMath for uint256;
 
     function CrowdsaleWithFundsTestHelper(address[] _owners, address _token)
-    multiowned(_owners, 2)
-    SimpleCrowdsaleBase(_token)
-    FundsRegistryWalletConnector(_owners, 2)
+        multiowned(_owners, 2)
+        SimpleCrowdsaleBase(_token)
+        FundsRegistryWalletConnector(_owners, 2)
     {
         require(3 == _owners.length);
+        m_token = MintableMultiownedCirculatingTokenTestHelper(_token);
     }
+
 
     function getFundsAddress() public constant returns (address) {
         return m_fundsAddress;
     }
 
-    function withdrawPayments() public payable {
+    function withdrawPayments() public {
         m_fundsAddress.withdrawPayments(msg.sender);
     }
 
@@ -35,7 +38,7 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
 
     /// @notice minimum amount of funding to consider preSale as successful
     function getMinimumFunds() internal constant returns (uint) {
-        return 0;
+        return 100 finney;
     }
 
     /// @notice maximum investments to be accepted during preSale
@@ -50,7 +53,8 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
 
     /// @notice end time of the pre-ICO
     function getEndTime() internal constant returns (uint) {
-        return getStartTime() + (1 days);
+        return 1507852800;
+        //return getStartTime() + (1 days);
     }
 
     function createMorePaymentChannels(uint limit) external onlyowner returns (uint) {
@@ -65,6 +69,17 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
         m_time = time;
     }
 
+    function wcOnCrowdsaleSuccess() internal {
+        m_fundsAddress.changeState(FundsRegistry.State.SUCCEEDED);
+        m_token.startCirculation();
+    }
+
+    /// @dev called in case crowdsale failed
+    function wcOnCrowdsaleFailure() internal {
+        m_fundsAddress.changeState(FundsRegistry.State.REFUNDING);
+    }
+
     uint m_time;
+    MintableMultiownedCirculatingTokenTestHelper public m_token;
 }
 

@@ -240,7 +240,7 @@ contract('FundsRegistry', function(accounts) {
         let refund = (await web3.eth.getBalance(role.investor1)).sub(initial);
 
         // paid for gas for withdrawPayments call, so refund smaller than 7
-        assert(refund.lte(web3.toWei(7, 'finney')) && refund.gt(web3.toWei(3, 'finney')));
+        assert(refund.eq(web3.toWei(7, 'finney')));
 
         // Check that controller paid some gas for withdraw
         let controllerCurrent = await web3.eth.getBalance(role.controller);

@@ -5,13 +5,13 @@
 import {crowdsaleUTest} from '../utest/Crowdsale';
 
 const CrowdsaleWithFundsTestHelper = artifacts.require("./test_helpers/crowdsale/CrowdsaleWithFundsTestHelper.sol");
-const MintableMultiownedTokenTestHelper = artifacts.require("./test_helpers/token/MintableMultiownedTokenTestHelper.sol");
+const MintableMultiownedCirculatingTokenTestHelper = artifacts.require("./test_helpers/token/MintableMultiownedCirculatingTokenTestHelper.sol");
 const FundsRegistry = artifacts.require("./crowdsale/FundsRegistry.sol");
 
 
 contract('CrowdsaleWithFunds', function(accounts) {
     async function instantiate(role) {
-        const token = await MintableMultiownedTokenTestHelper.new(
+        const token = await MintableMultiownedCirculatingTokenTestHelper.new(
             [role.owner1, role.owner2, role.owner3], 2, role.nobody, {from: role.nobody}
         );
         const crowdsale = await CrowdsaleWithFundsTestHelper.new(
@@ -31,6 +31,7 @@ contract('CrowdsaleWithFunds', function(accounts) {
         usingFund: true,
         extraPaymentFunction: 'buy',
         rate: 1,
+        softCap: web3.toWei(100, 'finney'),
         hardCap: web3.toWei(400, 'finney'),
         startTime: (new Date('Thu, 12 Oct 2017 0:00:00 GMT')).getTime() / 1000,
         endTime: (new Date('Fri, 13 Oct 2017 0:00:00 GMT')).getTime() / 1000,
@@ -40,7 +41,7 @@ contract('CrowdsaleWithFunds', function(accounts) {
         hasAnalytics: false,
         analyticsPaymentBonus: 0,
         // No circulation
-        tokenTransfersDuringSale: true
+        tokenTransfersDuringSale: false
     }))
         it(name, fn);
 });
