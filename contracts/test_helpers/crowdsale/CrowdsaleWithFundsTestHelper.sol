@@ -19,7 +19,6 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
         FundsRegistryWalletConnector(_owners, 2)
     {
         require(3 == _owners.length);
-        m_token = MintableMultiownedCirculatingTokenTestHelper(_token);
     }
 
 
@@ -71,7 +70,7 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
 
     function wcOnCrowdsaleSuccess() internal {
         m_fundsAddress.changeState(FundsRegistry.State.SUCCEEDED);
-        m_token.startCirculation();
+        getToken().startCirculation();
     }
 
     /// @dev called in case crowdsale failed
@@ -79,7 +78,10 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
         m_fundsAddress.changeState(FundsRegistry.State.REFUNDING);
     }
 
+    function getToken() public constant returns (MintableMultiownedCirculatingTokenTestHelper) {
+        return MintableMultiownedCirculatingTokenTestHelper(address(m_token));
+    }
+
     uint m_time;
-    MintableMultiownedCirculatingTokenTestHelper public m_token;
 }
 
