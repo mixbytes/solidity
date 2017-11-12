@@ -24,8 +24,9 @@ contract('FundsRegistry', function(accounts) {
         const role = getRoles();
         const initialBalance = web3.eth.getBalance(instance.address);
 
-        for (let from_ of [role.controller, role.investor2, role.nobody]) {
-            await expectThrow(instance.withdrawPayments({from: from_}));
+        for (let payee of [role.controller, role.investor2, role.nobody]) {
+            await expectThrow(instance.withdrawPayments(payee, {from: payee}));
+            await expectThrow(instance.withdrawPayments(payee, {from: role.controller}));
         }
 
         assert(await web3.eth.getBalance(instance.address).eq(initialBalance));
@@ -225,27 +226,39 @@ contract('FundsRegistry', function(accounts) {
         await checkEtherCantBeSent(instance);
 
         for (let from_ of [role.controller, role.owner1, role.nobody]) {
-            await expectThrow(instance.withdrawPayments({from: from_}));
+            await expectThrow(instance.withdrawPayments(from_, {from: role.controller}));
+            await expectThrow(instance.withdrawPayments(from_, {from: from_}));
         }
 
         let initial = await web3.eth.getBalance(role.investor1);
-        await instance.withdrawPayments({from: role.investor1});
+        let controllerInitial = await web3.eth.getBalance(role.controller);
+
+        await instance.withdrawPayments(role.investor1, {from: role.controller});
         assert.equal(await instance.totalInvested(), web3.toWei(8, 'finney'));
         assert(await web3.eth.getBalance(instance.address).eq(web3.toWei(8, 'finney')));
 
         let refund = (await web3.eth.getBalance(role.investor1)).sub(initial);
+
         // paid for gas for withdrawPayments call, so refund smaller than 7
-        assert(refund.lt(web3.toWei(7, 'finney')) && refund.gt(web3.toWei(3, 'finney')));
+        assert(refund.eq(web3.toWei(7, 'finney')));
+
+        // Check that controller paid some gas for withdraw
+        let controllerCurrent = await web3.eth.getBalance(role.controller);
+        assert(controllerCurrent.lt(controllerInitial));
 
         await checkInvestmentsCantBeMade(instance);
         await checkEtherCantBeSent(instance);
 
+        // No, investor can't withdraw directly, just through controller
+        await expectThrow(instance.withdrawPayments(role.investor2, {from: role.investor2}));
+
         initial = await web3.eth.getBalance(role.investor2);
-        await instance.withdrawPayments({from: role.investor2});
+        await instance.withdrawPayments(role.investor2, {from: role.controller});
         assert.equal(await instance.totalInvested(), web3.toWei(0, 'finney'));
         assert(await web3.eth.getBalance(instance.address).eq(web3.toWei(0, 'finney')));
 
         refund = (await web3.eth.getBalance(role.investor2)).sub(initial);
-        assert(refund.lt(web3.toWei(8, 'finney')) && refund.gt(web3.toWei(4, 'finney')));
+
+        assert(refund.eq(web3.toWei(8, 'finney')));
     });
 });
