@@ -78,7 +78,6 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
     }
 
     async function assertBalances(sale, token, cash, cashInitial, cashAdded) {
-        let x = await web3.eth.getBalance(sale.address);
         assert.equal(await web3.eth.getBalance(sale.address), 0, "expecting balance of the sale to be empty");
         assert.equal(await web3.eth.getBalance(token.address), 0, "expecting balance of the token to be empty");
         const actualCashAdded = (await getFundsBalance(cash)).sub(cashInitial);
