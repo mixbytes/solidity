@@ -323,7 +323,7 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
 
                 if (shouldCheckWidthdraw) {
                     // Try withdraw
-                    crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor1});
+                    await crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor1});
                 }
             }
         }]);
