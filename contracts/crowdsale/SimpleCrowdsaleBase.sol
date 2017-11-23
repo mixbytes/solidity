@@ -10,7 +10,6 @@
 pragma solidity ^0.4.15;
 
 import '../security/ArgumentsChecker.sol';
-import '../token/MintableMultiownedToken.sol';
 import '../token/MintableToken.sol';
 import './IInvestmentsWalletConnector.sol';
 import './ICrowdsaleStat.sol';
@@ -27,7 +26,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     function SimpleCrowdsaleBase(address token)
         validAddress(token)
     {
-        m_token = MintableMultiownedToken(token);
+        m_token = MintableToken(token);
     }
 
 
@@ -85,10 +84,10 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
 
         // record payment
         storeInvestment(investor, payment);
-        assert((getWeiCollected() <= getMaximumFunds() || !hasHardCap()) && getWeiCollected() > startingWeiCollected);
+        assert((!hasHardCap() || getWeiCollected() <= getMaximumFunds()) && getWeiCollected() > startingWeiCollected);
         FundTransfer(investor, payment, true);
 
-        if (getWeiCollected() == getMaximumFunds() && hasHardCap())
+        if (hasHardCap() && getWeiCollected() == getMaximumFunds())
             finish();
 
         if (change > 0)
