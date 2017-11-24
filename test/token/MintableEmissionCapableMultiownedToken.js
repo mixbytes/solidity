@@ -4,11 +4,11 @@
 
 import expectThrow from '../helpers/expectThrow';
 
-const MintableMultiownedTokenTestHelper = artifacts.require("../test_helpers/token/MintableMultiownedTokenTestHelper.sol");
+const MintableEmissionCapableMultiownedTokenTestHelper = artifacts.require("../test_helpers/token/MintableEmissionCapableMultiownedTokenTestHelper.sol");
 const l = console.log;
 
 // Note: build artifact does not get rebuilt as MintableMultiownedToken changes (by some reason)
-contract('MintableMultiownedToken', function(accounts) {
+contract('MintableEmissionCapableMultiownedToken', function(accounts) {
 
     function getRoles() {
         return {
@@ -48,7 +48,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test minting + emissions", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 2, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 2, role.minter, {from: role.nobody});
 
         await checkMintingOnlyByMinter(instance);
 
@@ -126,7 +126,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test minting + transfers", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 2, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 2, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(12, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(4, 'ether'), {from: role.minter});
@@ -190,7 +190,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test transferFrom", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});
@@ -230,7 +230,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test disableMinting", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 2, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 2, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(12, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(4, 'ether'), {from: role.minter});
@@ -247,7 +247,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test transfer,mint,emission", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});
@@ -276,7 +276,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test transfer,emission,mint", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});
@@ -306,7 +306,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test mint,transfer,emission", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});
@@ -335,7 +335,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test mint,emission,transfer", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});
@@ -364,7 +364,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test emission,transfer,mint", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});
@@ -393,7 +393,7 @@ contract('MintableMultiownedToken', function(accounts) {
     it("test emission,mint,transfer", async function() {
         const role = getRoles();
 
-        const instance = await MintableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
+        const instance = await MintableEmissionCapableMultiownedTokenTestHelper.new([role.owner1, role.owner2], 1, role.minter, {from: role.nobody});
 
         await instance.mint(role.investor1, web3.toWei(10, 'ether'), {from: role.minter});
         await instance.mint(role.investor2, web3.toWei(6, 'ether'), {from: role.minter});

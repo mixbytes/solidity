@@ -9,14 +9,14 @@
 
 pragma solidity ^0.4.15;
 
-import '../../token/MintableMultiownedToken.sol';
+import '../../token/MintableEmissionCapableMultiownedToken.sol';
 
 
 /// @title Test helper for MintableMultiownedToken, DONT use it in production!
-contract MintableMultiownedTokenTestHelper is MintableMultiownedToken {
+contract MintableEmissionCapableMultiownedTokenTestHelper is MintableEmissionCapableMultiownedToken {
 
-    function MintableMultiownedTokenTestHelper(address[] _owners, uint _signatures, address _minter)
-        MintableMultiownedToken(_owners, _signatures, _minter)
+    function MintableEmissionCapableMultiownedTokenTestHelper(address[] _owners, uint _signatures, address _minter)
+        MintableEmissionCapableMultiownedToken(_owners, _signatures, _minter)
     {
     }
 
