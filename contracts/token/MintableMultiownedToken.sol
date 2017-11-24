@@ -36,7 +36,7 @@ contract MintableMultiownedToken is MintableToken, MultiownedControlled, Standar
     function MintableMultiownedToken(address[] _owners, uint _signaturesRequired, address _minter)
         MultiownedControlled(_owners, _signaturesRequired, _minter)
     {
-        dividendsPool = this;   // or any other special unforgeable value, actually
+        dividendsPool = address(0xd1);  // or any other special unforgeable value, actually
 
         // emission #0 is a dummy: because of default value 0 in m_lastAccountEmission
         m_emissions.push(EmissionInfo({created: 0, totalSupplyWas: 0}));
@@ -108,7 +108,7 @@ contract MintableMultiownedToken is MintableToken, MultiownedControlled, Standar
     function mintInternal(address _to, uint256 _amount) internal {
         totalSupply = totalSupply.add(_amount);
         balances[_to] = balances[_to].add(_amount);
-        Transfer(this, _to, _amount);
+        Transfer(address(0), _to, _amount);
         Mint(_to, _amount);
     }
 
