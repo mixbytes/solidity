@@ -4,6 +4,7 @@ import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import '../../crowdsale/FundsRegistryWalletConnector.sol';
 import '../../crowdsale/SimpleCrowdsaleBase.sol';
+import '../../crowdsale/FundsRegistry.sol';
 import '../../crowdsale/InvestmentAnalytics.sol';
 import '../../ownership/multiowned.sol';
 import '../../test_helpers/token/MintableMultiownedCirculatingTokenTestHelper.sol';
@@ -12,6 +13,8 @@ import '../../test_helpers/token/MintableMultiownedCirculatingTokenTestHelper.so
 /// @title CrowdsaleWithFundsTestHelper  USE ONLY FOR TEST PURPOSES
 contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsRegistryWalletConnector, InvestmentAnalytics {
     using SafeMath for uint256;
+
+    event Withdraw(address payee);
 
     function CrowdsaleWithFundsTestHelper(address[] _owners, address _token)
         multiowned(_owners, 2)
@@ -27,6 +30,14 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
     }
 
     function withdrawPayments() public {
+
+        if (getCurrentTime() >= getEndTime())
+            finish();
+
+        require(m_fundsAddress.m_state() == FundsRegistry.State.REFUNDING);
+
+        Withdraw(msg.sender);
+
         m_fundsAddress.withdrawPayments(msg.sender);
     }
 
@@ -45,12 +56,22 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
         return 400 finney;
     }
 
-    /// @notice start time of the pre-ICO
+    /// @notice start time of the sale
     function getStartTime() internal constant returns (uint) {
         return 1507766400;
     }
 
-    /// @notice end time of the pre-ICO
+    /// @notice public ifce for tests
+    function _getStartTime() external constant returns (uint) {
+        return getStartTime();
+    }
+
+    /// @notice public ifce for tests
+    function _getEndTime() external constant returns (uint) {
+        return getEndTime();
+    }
+
+    /// @notice end time of the sale
     function getEndTime() internal constant returns (uint) {
         return 1507852800;
         //return getStartTime() + (1 days);
@@ -69,13 +90,8 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
     }
 
     function wcOnCrowdsaleSuccess() internal {
-        m_fundsAddress.changeState(FundsRegistry.State.SUCCEEDED);
+        super.wcOnCrowdsaleSuccess();
         getToken().startCirculation();
-    }
-
-    /// @dev called in case crowdsale failed
-    function wcOnCrowdsaleFailure() internal {
-        m_fundsAddress.changeState(FundsRegistry.State.REFUNDING);
     }
 
     function getToken() public constant returns (MintableMultiownedCirculatingTokenTestHelper) {
