@@ -94,6 +94,11 @@ contract('CrowdsaleWithFundsAdditionalTests', function(accounts) {
                     value: web3.toWei(30, 'finney')
             });
 
+            // Too early to withdraw
+            for (const _from of [roles.nobody, roles.owner1, roles.investor1, roles.investor2, roles.investor3]) {
+                await expectThrow(crowdsale.withdrawPayments({from: _from, gasPrice: 0}));
+            }
+
             let numInvestors = await funds.getInvestorsCount();
             assert(numInvestors.eq(2));
 
@@ -103,11 +108,31 @@ contract('CrowdsaleWithFundsAdditionalTests', function(accounts) {
             let endTs = await crowdsale._getEndTime();
             await crowdsale.setTime(endTs.plus(1), {from: roles.owner1});
 
-            await crowdsale.withdrawPayments({from: roles.investor1});
-            await crowdsale.withdrawPayments({from: roles.investor2});
+            let investor1InitialBalance = web3.eth.getBalance(roles.investor1);
+            let investor2InitialBalance = web3.eth.getBalance(roles.investor2);
+            let owner1InitialBalance = web3.eth.getBalance(roles.owner1);
+            let nobodyInitialBalance = web3.eth.getBalance(roles.nobody);
+
+            // Try to withdraw twice to check that withdraw only once
+            await crowdsale.withdrawPayments({from: roles.investor1, gasPrice: 0});
+            await crowdsale.withdrawPayments({from: roles.investor2, gasPrice: 0});
+
+            await expectThrow(crowdsale.withdrawPayments({from: roles.investor1, gasPrice: 0}));
+            await expectThrow(crowdsale.withdrawPayments({from: roles.investor2, gasPrice: 0}));
+
+            assert(await web3.eth.getBalance(roles.investor1).gt(investor1InitialBalance));
+            assert(await web3.eth.getBalance(roles.investor2).gt(investor2InitialBalance));
+
+            // Now let's check that someone else tries to withdraw and nothing changes
+            await expectThrow(crowdsale.withdrawPayments({from: roles.owner1, gasPrice: 0}));
+            await expectThrow(crowdsale.withdrawPayments({from: roles.nobody, gasPrice: 0}));
+
+            assert(await web3.eth.getBalance(roles.nobody).eq(nobodyInitialBalance));
+            assert(await web3.eth.getBalance(roles.owner1).eq(owner1InitialBalance));
 
             await expectThrow(crowdsale.withdrawPayments({from: roles.investor3}));
 
+            // Checking balance of crowdsale
             balance = await funds.totalInvested({from: roles.nobody});
             assert(balance.eq(0));
         });
