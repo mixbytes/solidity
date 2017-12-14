@@ -35,6 +35,7 @@ contract MultiownedControlled is multiowned {
     // PUBLIC interface
 
     function MultiownedControlled(address[] _owners, uint _signaturesRequired, address _controller)
+        public
         multiowned(_owners, _signaturesRequired)
     {
         m_controller = _controller;
@@ -42,7 +43,7 @@ contract MultiownedControlled is multiowned {
     }
 
     /// @dev sets the controller
-    function setController(address _controller) external onlymanyowners(sha3(msg.data)) {
+    function setController(address _controller) external onlymanyowners(keccak256(msg.data)) {
         m_controller = _controller;
         ControllerSet(m_controller);
     }

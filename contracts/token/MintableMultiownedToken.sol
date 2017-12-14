@@ -20,6 +20,7 @@ contract MintableMultiownedToken is MintableToken, MultiownedControlled, Standar
     // PUBLIC interface
 
     function MintableMultiownedToken(address[] _owners, uint _signaturesRequired, address _minter)
+        public
         MultiownedControlled(_owners, _signaturesRequired, _minter)
     {
     }

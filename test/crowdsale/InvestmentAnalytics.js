@@ -49,7 +49,7 @@ contract('InvestmentAnalytics', function(accounts) {
 
     it("test creation gas usage", async function() {
         const instance = await InvestmentAnalytics.new({from: accounts[0]});
-        await instance.createMorePaymentChannels(100, {from: accounts[0], gas: 0x47E7C4});
-        assert.equal(await instance.paymentChannelsCount(), 27);
+        await instance.createMorePaymentChannels(100, {from: accounts[0], gas: 4712388});
+        assert.equal((await instance.paymentChannelsCount()).valueOf(), 24);
     });
 });

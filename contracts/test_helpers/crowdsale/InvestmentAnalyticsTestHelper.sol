@@ -17,6 +17,6 @@ contract InvestmentAnalyticsTestHelper is InvestmentAnalytics {
         return createMorePaymentChannelsInternal(limit);
     }
 
-    function iaOnInvested(address /*investor*/, uint /*payment*/, bool /*usingPaymentChannel*/) internal {
+    function iaOnInvested(address /*investor*/, uint /*payment*/, bool /*usingPaymentChannel*/) internal view {
     }
 }

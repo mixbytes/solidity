@@ -103,6 +103,7 @@ contract multiowned {
     // constructor is given number of sigs required to do protected "onlymanyowners" transactions
     // as well as the selection of addresses capable of confirming them (msg.sender is not added to the owners!).
     function multiowned(address[] _owners, uint _required)
+        public
         validNumOwners(_owners.length)
         multiOwnedValidRequirement(_required, _owners.length)
     {
@@ -133,7 +134,7 @@ contract multiowned {
         external
         ownerExists(_from)
         ownerDoesNotExist(_to)
-        onlymanyowners(sha3(msg.data))
+        onlymanyowners(keccak256(msg.data))
     {
         assertOwnersAreConsistent();
 
@@ -154,7 +155,7 @@ contract multiowned {
         external
         ownerDoesNotExist(_owner)
         validNumOwners(m_numOwners + 1)
-        onlymanyowners(sha3(msg.data))
+        onlymanyowners(keccak256(msg.data))
     {
         assertOwnersAreConsistent();
 
@@ -175,7 +176,7 @@ contract multiowned {
         ownerExists(_owner)
         validNumOwners(m_numOwners - 1)
         multiOwnedValidRequirement(m_multiOwnedRequired, m_numOwners - 1)
-        onlymanyowners(sha3(msg.data))
+        onlymanyowners(keccak256(msg.data))
     {
         assertOwnersAreConsistent();
 
@@ -196,7 +197,7 @@ contract multiowned {
     function changeRequirement(uint _newRequired)
         external
         multiOwnedValidRequirement(_newRequired, m_numOwners)
-        onlymanyowners(sha3(msg.data))
+        onlymanyowners(keccak256(msg.data))
     {
         m_multiOwnedRequired = _newRequired;
         clearPending();
@@ -235,7 +236,7 @@ contract multiowned {
     }
 
     /// @notice Revokes a prior confirmation of the given operation
-    /// @param _operation operation value, typically sha3(msg.data)
+    /// @param _operation operation value, typically keccak256(msg.data)
     function revoke(bytes32 _operation)
         external
         multiOwnedOperationIsActive(_operation)
@@ -255,7 +256,7 @@ contract multiowned {
     }
 
     /// @notice Checks if owner confirmed given operation
-    /// @param _operation operation value, typically sha3(msg.data)
+    /// @param _operation operation value, typically keccak256(msg.data)
     /// @param _owner an owner address
     function hasConfirmed(bytes32 _operation, address _owner)
         external
@@ -351,7 +352,7 @@ contract multiowned {
         delete m_multiOwnedPendingIndex;
     }
 
-    function checkOwnerIndex(uint ownerIndex) private constant returns (uint) {
+    function checkOwnerIndex(uint ownerIndex) private pure returns (uint) {
         assert(0 != ownerIndex && ownerIndex <= c_maxOwners);
         return ownerIndex;
     }

@@ -20,6 +20,7 @@ import '../security/ArgumentsChecker.sol';
 contract ExternalAccountWalletConnector is ArgumentsChecker, IInvestmentsWalletConnector {
 
     function ExternalAccountWalletConnector(address accountAddress)
+        public
         validAddress(accountAddress)
     {
         m_walletAddress = accountAddress;

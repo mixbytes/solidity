@@ -19,8 +19,7 @@ import './FundsRegistry.sol';
  */
 contract FundsRegistryWalletConnector is IInvestmentsWalletConnector {
 
-    function FundsRegistryWalletConnector(address[] fundOwners, uint ownersSignatures)
-    {
+    function FundsRegistryWalletConnector(address[] fundOwners, uint ownersSignatures) public {
         m_fundsAddress = new FundsRegistry(fundOwners, ownersSignatures, this);
     }
 
