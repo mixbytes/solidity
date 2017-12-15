@@ -1,4 +1,7 @@
 # solidity
+
+![](https://api.travis-ci.org/mixbytes/solidity.svg?branch=master)
+
 Generic solidity smart-contracts
 
 Install deps:
