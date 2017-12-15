@@ -1,0 +1,23 @@
+language: node_js
+dist: trusty
+sudo: false
+node_js:
+  - "6"
+
+install:
+  - npm install --only=dev
+
+before_script:
+  - ./node_modules/.bin/testrpc -l 100000000 -i 15 > /dev/null &
+  - sleep 5
+
+script:
+  - npm test
+  - ./node_modules/.bin/truffle compile
+  - ./node_modules/.bin/truffle test
+
+notifications:
+  email:
+    on_success: always
+    on_failure: always
+
