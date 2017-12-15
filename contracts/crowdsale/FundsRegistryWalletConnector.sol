@@ -44,7 +44,6 @@ contract FundsRegistryWalletConnector is IInvestmentsWalletConnector {
     /// @dev called in case crowdsale failed
     function wcOnCrowdsaleFailure() internal {
         m_fundsAddress.changeState(FundsRegistry.State.REFUNDING);
-        m_fundsAddress.detachController();
     }
 
     /// @notice address of wallet which stores funds
