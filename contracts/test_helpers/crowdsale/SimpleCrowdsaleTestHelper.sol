@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity ^0.4.15;
 
 import '../../crowdsale/SimpleCrowdsaleBase.sol';
 import '../../crowdsale/ExternalAccountWalletConnector.sol';
@@ -11,8 +11,9 @@ contract SimpleCrowdsaleTestHelper is SimpleCrowdsaleBase, Ownable, ExternalAcco
     using SafeMath for uint256;
 
     function SimpleCrowdsaleTestHelper(address token, address funds)
-    SimpleCrowdsaleBase(token)
-    ExternalAccountWalletConnector(funds)
+        public
+        SimpleCrowdsaleBase(token)
+        ExternalAccountWalletConnector(funds)
     {
     }
 

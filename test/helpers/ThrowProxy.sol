@@ -6,12 +6,12 @@ contract ThrowProxy {
   address public target;
   bool public thrown;
 
-  function ThrowProxy(address _target) {
+  function ThrowProxy(address _target) public {
     target = _target;
   }
 
   //prime the data using the fallback function.
-  function() {
+  function() external {
     thrown = !(target.call.gas(200000)(msg.data));
   }
 }

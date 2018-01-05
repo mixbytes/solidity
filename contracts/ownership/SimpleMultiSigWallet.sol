@@ -21,12 +21,14 @@ contract SimpleMultiSigWallet is multiowned {
     event EtherSent(address indexed to, uint value);
 
     function SimpleMultiSigWallet(address[] _owners, uint _signaturesRequired)
+        public
         multiowned(_owners, _signaturesRequired)
     {
     }
 
     /// @dev Fallback function allows to deposit ether.
     function()
+        external
         payable
     {
         if (msg.value > 0)
@@ -38,7 +40,7 @@ contract SimpleMultiSigWallet is multiowned {
     /// @param value amount of wei to send
     function sendEther(address to, uint value)
         external
-        onlymanyowners(sha3(msg.data))
+        onlymanyowners(keccak256(msg.data))
     {
         require(0 != to);
         require(value > 0 && this.balance >= value);

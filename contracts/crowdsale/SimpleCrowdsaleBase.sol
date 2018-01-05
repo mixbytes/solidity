@@ -24,6 +24,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     event FundTransfer(address backer, uint amount, bool isContribution);
 
     function SimpleCrowdsaleBase(address token)
+        public
         validAddress(token)
     {
         m_token = MintableToken(token);
@@ -33,7 +34,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     // PUBLIC interface: payments
 
     // fallback function as a shortcut
-    function() payable {
+    function() external payable {
         require(0 == msg.data.length);
         buy();  // only internal call here!
     }

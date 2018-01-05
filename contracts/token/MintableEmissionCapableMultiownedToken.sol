@@ -31,6 +31,7 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
     // PUBLIC interface
 
     function MintableEmissionCapableMultiownedToken(address[] _owners, uint _signaturesRequired, address _minter)
+        public
         MintableMultiownedToken(_owners, _signaturesRequired, _minter)
     {
         // emission #0 is a dummy: because of default value 0 in m_lastAccountEmission
@@ -43,14 +44,14 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
     }
 
     /// @notice hook on standard ERC20#transfer to pay dividends
-    function transfer(address _to, uint256 _value) returns (bool) {
+    function transfer(address _to, uint256 _value) public returns (bool) {
         payDividendsTo(msg.sender);
         payDividendsTo(_to);
         return super.transfer(_to, _value);
     }
 
     /// @notice hook on standard ERC20#transferFrom to pay dividends
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
         payDividendsTo(_from);
         payDividendsTo(_to);
         return super.transferFrom(_from, _to, _value);
@@ -109,7 +110,7 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
 
     /// @dev calculates dividends for the account _for
     /// @return (true if state has to be updated, dividend amount (could be 0!))
-    function calculateDividendsFor(address _for) constant internal returns (bool hasNewDividends, uint dividends) {
+    function calculateDividendsFor(address _for) internal returns (bool hasNewDividends, uint dividends) {
         assert(_for != dividendsPool);  // no dividends for the pool!
 
         uint256 lastEmissionNum = getLastEmissionNum();

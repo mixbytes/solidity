@@ -16,11 +16,12 @@ import '../../token/MintableEmissionCapableMultiownedToken.sol';
 contract MintableEmissionCapableMultiownedTokenTestHelper is MintableEmissionCapableMultiownedToken {
 
     function MintableEmissionCapableMultiownedTokenTestHelper(address[] _owners, uint _signatures, address _minter)
+        public
         MintableEmissionCapableMultiownedToken(_owners, _signatures, _minter)
     {
     }
 
-    function emission(uint256 _weiToEmit) external onlymanyowners(sha3(msg.data)) {
+    function emission(uint256 _weiToEmit) external onlymanyowners(keccak256(msg.data)) {
         emissionInternal(_weiToEmit);
     }
 }

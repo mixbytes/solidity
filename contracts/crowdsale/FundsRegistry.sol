@@ -43,6 +43,7 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
     // PUBLIC interface
 
     function FundsRegistry(address[] _owners, uint _signaturesRequired, address _controller)
+        public
         MultiownedControlled(_owners, _signaturesRequired, _controller)
     {
     }
@@ -89,7 +90,7 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
     function sendEther(address to, uint value)
         external
         validAddress(to)
-        onlymanyowners(sha3(msg.data))
+        onlymanyowners(keccak256(msg.data))
         requiresState(State.SUCCEEDED)
     {
         require(value > 0 && this.balance >= value);

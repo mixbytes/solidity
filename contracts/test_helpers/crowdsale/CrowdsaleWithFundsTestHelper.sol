@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity ^0.4.15;
 
 import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
@@ -17,6 +17,7 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
     event Withdraw(address payee);
 
     function CrowdsaleWithFundsTestHelper(address[] _owners, address _token)
+        public
         multiowned(_owners, 2)
         SimpleCrowdsaleBase(_token)
         FundsRegistryWalletConnector(_owners, 2)

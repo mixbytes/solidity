@@ -20,12 +20,12 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
  */
 contract AnalyticProxy {
 
-    function AnalyticProxy() {
+    function AnalyticProxy() public {
         m_analytics = InvestmentAnalytics(msg.sender);
     }
 
     /// @notice forward payment to analytics-capable contract
-    function() payable {
+    function() external payable {
         m_analytics.iaInvestedBy.value(msg.value)(msg.sender);
     }
 
@@ -40,7 +40,7 @@ contract AnalyticProxy {
 contract InvestmentAnalytics {
     using SafeMath for uint256;
 
-    function InvestmentAnalytics(){
+    function InvestmentAnalytics() public {
     }
 
     /// @dev creates more payment channels, up to the limit but not exceeding gas stipend
