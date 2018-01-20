@@ -24,6 +24,7 @@ contract MultiownedControlled is multiowned {
 
     event ControllerSet(address controller);
     event ControllerRetired(address was);
+    event ControllerRetiredForever(address was);
 
 
     modifier onlyController {
@@ -44,6 +45,7 @@ contract MultiownedControlled is multiowned {
 
     /// @dev sets the controller
     function setController(address _controller) external onlymanyowners(keccak256(msg.data)) {
+        require(m_attaching_enabled);
         m_controller = _controller;
         ControllerSet(m_controller);
     }
@@ -55,9 +57,20 @@ contract MultiownedControlled is multiowned {
         ControllerRetired(was);
     }
 
+    /// @dev ability for controller to step down and make this contract completely automatic (without third-party control)
+    function detachControllerForever() external onlyController {
+        assert(m_attaching_enabled);
+        address was = m_controller;
+        m_controller = address(0);
+        m_attaching_enabled = false;
+        ControllerRetiredForever(was);
+    }
+
 
     // FIELDS
 
     /// @notice address of entity entitled to mint new tokens
     address public m_controller;
+
+    bool public m_attaching_enabled = true;
 }
