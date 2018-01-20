@@ -120,6 +120,24 @@ export function tokenUTest(accounts, instantiate, settings) {
         }]);
     }
 
+    if (settings.burnable) {
+        tests.push(["test burning", async function() {
+            const initial_balances_map = {};
+            initial_balances_map[role.investor1] = TOK(10);
+            initial_balances_map[role.investor2] = TOK(12);
+
+            const token = await instantiate(role, initial_balances_map);
+
+            await expectThrow(token.burn(0, {from: role.investor2}));
+            await expectThrow(token.burn(TOK(13), {from: role.investor2}));
+
+            await token.burn(TOK(5), {from: role.investor2});
+            assertBigNumberEqual(await token.balanceOf(role.investor1, {from: role.nobody}), TOK(10));
+            assertBigNumberEqual(await token.balanceOf(role.investor2, {from: role.nobody}), TOK(7));
+            assertBigNumberEqual(await token.totalSupply({from: role.nobody}), TOK(17));
+        }]);
+    }
+
 
     return tests;
 }
