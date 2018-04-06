@@ -4,3 +4,4 @@
 *.swp
 *.swn
 *.swo
+package-lock.json

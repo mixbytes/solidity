@@ -5,9 +5,20 @@
 import expectThrow from '../helpers/expectThrow';
 
 const SimpleMultiSigWallet = artifacts.require("./SimpleMultiSigWallet.sol");
+const Token = artifacts.require("MintableTokenHelper.sol");
 const l = console.log;
 
 contract('SimpleMultiSigWallet', function(accounts) {
+
+    let role = {
+        owner1: accounts[0],
+        owner2: accounts[1],
+        owner3: accounts[2],
+
+        nobody: accounts[3],
+        tokenOwner: accounts[7],
+        tokenReceiver: accounts[8]
+    };
 
     async function freshInstance(required=2) {
         return SimpleMultiSigWallet.new([accounts[0], accounts[1], accounts[2]], required, {from: accounts[0]});
@@ -20,6 +31,12 @@ contract('SimpleMultiSigWallet', function(accounts) {
             calls.push(instance.getOwner(i));
         return Promise.all(calls);
     }
+
+    let token;
+
+    beforeEach(async function () {
+        token = await Token.new({from: role.tokenOwner});
+    });
 
     it("ctor check", async function() {
         await expectThrow(SimpleMultiSigWallet.new([accounts[0], accounts[1], accounts[2]], 20, {from: accounts[0]}));
@@ -134,6 +151,26 @@ contract('SimpleMultiSigWallet', function(accounts) {
         // unauthorised
         await expectThrow(instance.sendEther(accounts[3], web3.toWei(5, 'finney'), {from: accounts[3]}));
         await expectThrow(instance.sendEther('0x0000000000000000000000000000000000000012', web3.toWei(5, 'finney'), {from: accounts[3]}));
+    });
+
+    it("send tokens check", async function() {
+        const instance = await freshInstance();
+
+        await token.mint(instance.address, 100, {from: role.tokenOwner});
+        assert.equal(100, await instance.tokenBalance(token.address));
+        assert.equal(100, await token.balanceOf(instance.address));
+        assert.equal(0, await token.balanceOf(role.tokenReceiver));
+
+        await expectThrow(instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.nobody}));
+
+        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner1});
+        assert.equal(100, await token.balanceOf(instance.address));
+        assert.equal(0, await token.balanceOf(role.tokenReceiver));
+
+        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner2});
+        assert.equal(90, await token.balanceOf(instance.address));
+        assert.equal(10, await token.balanceOf(role.tokenReceiver));
+
     });
 
     // FIXME TODO reentrancy test

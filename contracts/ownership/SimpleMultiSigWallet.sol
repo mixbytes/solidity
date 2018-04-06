@@ -1,4 +1,4 @@
-// Copyright (C) 2017  MixBytes, LLC
+// Copyright (C) 2017-2018  MixBytes, LLC
 
 // Licensed under the Apache License, Version 2.0 (the "License").
 // You may not use this file except in compliance with the License.
@@ -10,6 +10,7 @@
 pragma solidity ^0.4.15;
 
 import './multiowned.sol';
+import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
 
 
 /**
@@ -19,6 +20,7 @@ contract SimpleMultiSigWallet is multiowned {
 
     event Deposit(address indexed sender, uint value);
     event EtherSent(address indexed to, uint value);
+    event TokensSent(address token, address indexed to, uint value);
 
     function SimpleMultiSigWallet(address[] _owners, uint _signaturesRequired)
         public
@@ -42,9 +44,28 @@ contract SimpleMultiSigWallet is multiowned {
         external
         onlymanyowners(keccak256(msg.data))
     {
-        require(0 != to);
+        require(address(0) != to);
         require(value > 0 && this.balance >= value);
         to.transfer(value);
         EtherSent(to, value);
+    }
+
+    function sendTokens(address token, address to, uint value)
+        external
+        onlymanyowners(keccak256(msg.data))
+        returns (bool)
+    {
+        require(address(0) != to);
+
+        if (ERC20Basic(token).transfer(to, value)) {
+            TokensSent(token, to, value);
+            return true;
+        }
+
+        return false;
+    }
+
+    function tokenBalance(address token) external view returns (uint256) {
+        return ERC20Basic(token).balanceOf(this);
     }
 }
