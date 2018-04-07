@@ -10,7 +10,7 @@ const l = console.log;
 
 contract('SimpleMultiSigWallet', function(accounts) {
 
-    let role = {
+    const role = {
         owner1: accounts[0],
         owner2: accounts[1],
         owner3: accounts[2],
