@@ -56,6 +56,9 @@ contract SimpleMultiSigWallet is multiowned {
         returns (bool)
     {
         require(address(0) != to);
+        require(address(0) != token);
+        require(token != to);
+        require(isContract(token));
 
         if (ERC20Basic(token).transfer(to, value)) {
             TokensSent(token, to, value);
@@ -67,5 +70,15 @@ contract SimpleMultiSigWallet is multiowned {
 
     function tokenBalance(address token) external view returns (uint256) {
         return ERC20Basic(token).balanceOf(this);
+    }
+
+    function isContract(address _addr)
+        private
+        view
+        returns (bool hasCode)
+    {
+        uint length;
+        assembly { length := extcodesize(_addr) }
+        return length > 0;
     }
 }
