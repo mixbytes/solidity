@@ -1,13 +1,22 @@
 'use strict';
 
-// testrpc has to be run as testrpc -u 0 -u 1 -u 2 -u 3
-
 import expectThrow from '../helpers/expectThrow';
 
 const SimpleMultiSigWallet = artifacts.require("./SimpleMultiSigWallet.sol");
+const Token = artifacts.require("MintableTokenHelper.sol");
 const l = console.log;
 
 contract('SimpleMultiSigWallet', function(accounts) {
+
+    const role = {
+        owner1: accounts[0],
+        owner2: accounts[1],
+        owner3: accounts[2],
+
+        nobody: accounts[3],
+        tokenOwner: accounts[7],
+        tokenReceiver: accounts[8]
+    };
 
     async function freshInstance(required=2) {
         return SimpleMultiSigWallet.new([accounts[0], accounts[1], accounts[2]], required, {from: accounts[0]});
@@ -20,6 +29,12 @@ contract('SimpleMultiSigWallet', function(accounts) {
             calls.push(instance.getOwner(i));
         return Promise.all(calls);
     }
+
+    let token;
+
+    beforeEach(async function () {
+        token = await Token.new({from: role.tokenOwner});
+    });
 
     it("ctor check", async function() {
         await expectThrow(SimpleMultiSigWallet.new([accounts[0], accounts[1], accounts[2]], 20, {from: accounts[0]}));

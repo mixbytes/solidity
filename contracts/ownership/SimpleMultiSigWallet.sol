@@ -1,4 +1,4 @@
-// Copyright (C) 2017  MixBytes, LLC
+// Copyright (C) 2017-2018  MixBytes, LLC
 
 // Licensed under the Apache License, Version 2.0 (the "License").
 // You may not use this file except in compliance with the License.
@@ -10,7 +10,6 @@
 pragma solidity ^0.4.15;
 
 import './multiowned.sol';
-
 
 /**
  * @title Basic demonstration of multi-owned entity.
@@ -42,7 +41,7 @@ contract SimpleMultiSigWallet is multiowned {
         external
         onlymanyowners(keccak256(msg.data))
     {
-        require(0 != to);
+        require(address(0) != to);
         require(value > 0 && this.balance >= value);
         to.transfer(value);
         EtherSent(to, value);
