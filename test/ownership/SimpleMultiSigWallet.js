@@ -1,7 +1,5 @@
 'use strict';
 
-// testrpc has to be run as testrpc -u 0 -u 1 -u 2 -u 3
-
 import expectThrow from '../helpers/expectThrow';
 
 const SimpleMultiSigWallet = artifacts.require("./SimpleMultiSigWallet.sol");
@@ -151,47 +149,6 @@ contract('SimpleMultiSigWallet', function(accounts) {
         // unauthorised
         await expectThrow(instance.sendEther(accounts[3], web3.toWei(5, 'finney'), {from: accounts[3]}));
         await expectThrow(instance.sendEther('0x0000000000000000000000000000000000000012', web3.toWei(5, 'finney'), {from: accounts[3]}));
-    });
-
-    it("send tokens check", async function() {
-        const instance = await freshInstance();
-
-        await token.mint(instance.address, 100, {from: role.tokenOwner});
-        assert.equal(100, await instance.tokenBalance(token.address));
-        assert.equal(100, await token.balanceOf(instance.address));
-        assert.equal(0, await token.balanceOf(role.tokenReceiver));
-
-        await expectThrow(instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.nobody}));
-
-        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner1});
-        assert.equal(100, await token.balanceOf(instance.address));
-        assert.equal(0, await token.balanceOf(role.tokenReceiver));
-
-        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner2});
-        assert.equal(90, await token.balanceOf(instance.address));
-        assert.equal(10, await token.balanceOf(role.tokenReceiver));
-
-        // from zero address
-        await instance.sendTokens(0, role.tokenReceiver, 10, {from: role.owner1});
-        await expectThrow(instance.sendTokens(0, role.tokenReceiver, 10, {from: role.owner2}));
-
-        // to zero address
-        await instance.sendTokens(token.address, 0, 10, {from: role.owner1});
-        await expectThrow(instance.sendTokens(token.address, 0, 10, {from: role.owner2}));
-
-        // the same address
-        await instance.sendTokens(token.address, token.address, 10, {from: role.owner1});
-        await expectThrow(instance.sendTokens(token.address, token.address, 10, {from: role.owner2}));
-
-        // from non contract
-        await instance.sendTokens(role.nobody, role.tokenReceiver, 10, {from: role.owner1});
-        await expectThrow(instance.sendTokens(role.nobody, role.tokenReceiver, 10, {from: role.owner2}));
-
-        // successful after negative test
-        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner1});
-        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner2});
-        assert.equal(20, await token.balanceOf(role.tokenReceiver));
-
     });
 
     // FIXME TODO reentrancy test

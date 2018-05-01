@@ -10,8 +10,6 @@
 pragma solidity ^0.4.15;
 
 import './multiowned.sol';
-import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
-
 
 /**
  * @title Basic demonstration of multi-owned entity.
@@ -20,7 +18,6 @@ contract SimpleMultiSigWallet is multiowned {
 
     event Deposit(address indexed sender, uint value);
     event EtherSent(address indexed to, uint value);
-    event TokensSent(address token, address indexed to, uint value);
 
     function SimpleMultiSigWallet(address[] _owners, uint _signaturesRequired)
         public
@@ -48,37 +45,5 @@ contract SimpleMultiSigWallet is multiowned {
         require(value > 0 && this.balance >= value);
         to.transfer(value);
         EtherSent(to, value);
-    }
-
-    function sendTokens(address token, address to, uint value)
-        external
-        onlymanyowners(keccak256(msg.data))
-        returns (bool)
-    {
-        require(address(0) != to);
-        require(address(0) != token);
-        require(token != to);
-        require(isContract(token));
-
-        if (ERC20Basic(token).transfer(to, value)) {
-            TokensSent(token, to, value);
-            return true;
-        }
-
-        return false;
-    }
-
-    function tokenBalance(address token) external view returns (uint256) {
-        return ERC20Basic(token).balanceOf(this);
-    }
-
-    function isContract(address _addr)
-        private
-        view
-        returns (bool hasCode)
-    {
-        uint length;
-        assembly { length := extcodesize(_addr) }
-        return length > 0;
     }
 }
