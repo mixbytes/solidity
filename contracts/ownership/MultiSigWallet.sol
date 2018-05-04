@@ -19,16 +19,38 @@ import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
  */
 contract MultiSigWallet is SimpleMultiSigWallet {
 
+    // EVENTS
+
     event TokensSent(address token, address indexed to, uint value);
 
-    function MultiSigWallet(address[] _owners, uint _signaturesRequired)
+
+    // MODIFIERS
+
+    modifier notFrozen {
+        require(getCurrentTime() >= m_thawTs);
+        _;
+    }
+
+
+    // PUBLIC FUNCTIONS
+
+    function MultiSigWallet(address[] _owners, uint _signaturesRequired, uint thawTs)
         public
         SimpleMultiSigWallet(_owners, _signaturesRequired)
     {
+        m_thawTs = thawTs;
+    }
+
+    function sendEther(address to, uint value)
+        public
+        notFrozen
+    {
+        super.sendEther(to, value);
     }
 
     function sendTokens(address token, address to, uint value)
-        external
+        public
+        notFrozen
         onlymanyowners(keccak256(msg.data))
         returns (bool)
     {
@@ -45,9 +67,19 @@ contract MultiSigWallet is SimpleMultiSigWallet {
         return false;
     }
 
-    function tokenBalance(address token) external view returns (uint256) {
+
+    // PUBLIC VIEW FUNCTIONS
+
+    function tokenBalance(address token) public view returns (uint256) {
         return ERC20Basic(token).balanceOf(this);
     }
+
+    function frozenUntil() public view returns (uint) {
+        return m_thawTs;
+    }
+
+
+    // INTERNAL FUNCTIONS
 
     function isContract(address _addr)
         private
@@ -58,4 +90,13 @@ contract MultiSigWallet is SimpleMultiSigWallet {
         assembly { length := extcodesize(_addr) }
         return length > 0;
     }
+
+    function getCurrentTime() internal view returns (uint) {
+        return now;
+    }
+
+
+    // FIELDS
+
+    uint private m_thawTs;
 }

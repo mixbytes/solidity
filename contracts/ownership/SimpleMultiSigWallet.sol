@@ -27,7 +27,7 @@ contract SimpleMultiSigWallet is multiowned {
 
     /// @dev Fallback function allows to deposit ether.
     function()
-        external
+        public
         payable
     {
         if (msg.value > 0)
@@ -38,7 +38,7 @@ contract SimpleMultiSigWallet is multiowned {
     /// @param to where to send ether
     /// @param value amount of wei to send
     function sendEther(address to, uint value)
-        external
+        public
         onlymanyowners(keccak256(msg.data))
     {
         require(address(0) != to);

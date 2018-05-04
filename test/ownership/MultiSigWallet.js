@@ -2,7 +2,7 @@
 
 import expectThrow from '../helpers/expectThrow';
 
-const MultiSigWallet = artifacts.require("./MultiSigWallet.sol");
+const MultiSigWallet = artifacts.require("MultiSigWalletTestHelper.sol");
 const Token = artifacts.require("MintableTokenHelper.sol");
 const l = console.log;
 
@@ -18,8 +18,11 @@ contract('MultiSigWallet', function(accounts) {
         tokenReceiver: accounts[8]
     };
 
-    async function freshInstance(required=2) {
-        return MultiSigWallet.new([accounts[0], accounts[1], accounts[2]], required, {from: accounts[0]});
+    async function freshInstance(required=2, thawTs=0) {
+        const instance = await MultiSigWallet.new([role.owner1, role.owner2, role.owner3],
+                required, thawTs, {from: accounts[0]});
+        await instance.setTime(1500000000);
+        return instance;
     }
 
     async function getOwners(instance) {
@@ -75,6 +78,55 @@ contract('MultiSigWallet', function(accounts) {
         await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner2});
         assert.equal(20, await token.balanceOf(role.tokenReceiver));
 
+    });
+
+    it("freeze ether check", async function() {
+        const instance = await freshInstance(2, 2000000000);
+
+        // Frozen
+
+        await instance.send(web3.toWei(10, 'finney'), {from: accounts[0]});
+        assert(await web3.eth.getBalance(instance.address).eq(web3.toWei(10, 'finney')));
+
+        for (const to_ of [role.owner2, role.nobody])
+            for (const from_ of [role.owner1, role.owner2, role.owner3, role.nobody])
+                await expectThrow(instance.sendEther(to_, web3.toWei(2, 'finney'), {from: from_}));
+
+        // Thaw
+
+        await instance.setTime(2000000002);
+
+        const initialBalance = await web3.eth.getBalance(role.owner2);
+        await instance.sendEther(role.owner2, web3.toWei(2, 'finney'), {from: role.owner1});
+        assert((await web3.eth.getBalance(role.owner2)).eq(initialBalance));    // after first signature
+
+        await instance.sendEther(role.owner2, web3.toWei(2, 'finney'), {from: role.owner3});
+        assert((await web3.eth.getBalance(role.owner2)).sub(initialBalance).eq(web3.toWei(2, 'finney')));   // ether was sent
+    });
+
+    it("freeze tokens check", async function() {
+        const instance = await freshInstance(2, 2000000000);
+
+        // Frozen
+
+        await token.mint(instance.address, 100, {from: role.tokenOwner});
+        assert.equal(100, await token.balanceOf(instance.address));
+
+        for (const to_ of [role.owner2, role.nobody, role.tokenReceiver])
+            for (const from_ of [role.owner1, role.owner2, role.owner3, role.nobody])
+                await expectThrow(instance.sendTokens(token.address, to_, 10, {from: from_}));
+
+        // Thaw
+
+        await instance.setTime(2000000002);
+
+        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner1});
+        assert.equal(100, await token.balanceOf(instance.address));
+        assert.equal(0, await token.balanceOf(role.tokenReceiver));
+
+        await instance.sendTokens(token.address, role.tokenReceiver, 10, {from: role.owner2});
+        assert.equal(90, await token.balanceOf(instance.address));
+        assert.equal(10, await token.balanceOf(role.tokenReceiver));
     });
 
     // FIXME TODO reentrancy test
