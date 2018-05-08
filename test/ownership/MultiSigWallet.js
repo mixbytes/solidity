@@ -86,7 +86,7 @@ contract('MultiSigWallet', function(accounts) {
         // Frozen
 
         await instance.send(web3.toWei(10, 'finney'), {from: accounts[0]});
-        assert(await web3.eth.getBalance(instance.address).eq(web3.toWei(10, 'finney')));
+        assert((await web3.eth.getBalance(instance.address)).eq(web3.toWei(10, 'finney')));
 
         for (const to_ of [role.owner2, role.nobody])
             for (const from_ of [role.owner1, role.owner2, role.owner3, role.nobody])

@@ -34,11 +34,11 @@ contract MultiSigWallet is SimpleMultiSigWallet {
 
     // PUBLIC FUNCTIONS
 
-    function MultiSigWallet(address[] _owners, uint _signaturesRequired, uint thawTs)
+    function MultiSigWallet(address[] _owners, uint _signaturesRequired, uint _thawTs)
         public
         SimpleMultiSigWallet(_owners, _signaturesRequired)
     {
-        m_thawTs = thawTs;
+        m_thawTs = _thawTs;
     }
 
     function sendEther(address to, uint value)
