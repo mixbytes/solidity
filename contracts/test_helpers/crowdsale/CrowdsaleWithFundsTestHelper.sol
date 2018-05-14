@@ -49,12 +49,12 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
 
     /// @notice minimum amount of funding to consider preSale as successful
     function getMinimumFunds() internal constant returns (uint) {
-        return 100 finney;
+        return 200 finney;
     }
 
     /// @notice maximum investments to be accepted during preSale
     function getMaximumFunds() internal constant returns (uint) {
-        return 400 finney;
+        return 1000 finney;
     }
 
     /// @notice start time of the sale
@@ -97,6 +97,11 @@ contract CrowdsaleWithFundsTestHelper is SimpleCrowdsaleBase, multiowned, FundsR
 
     function getToken() public constant returns (MintableMultiownedCirculatingTokenTestHelper) {
         return MintableMultiownedCirculatingTokenTestHelper(address(m_token));
+    }
+
+    function iaOnInvested(address investor, uint payment, bool /*usingPaymentChannel*/) internal
+    {
+        buyInternal(investor, payment, 0);
     }
 
     uint m_time;
