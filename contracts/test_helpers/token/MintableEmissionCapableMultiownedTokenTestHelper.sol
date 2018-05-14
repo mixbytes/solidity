@@ -9,18 +9,19 @@
 
 pragma solidity ^0.4.15;
 
-import '../../token/MintableMultiownedToken.sol';
+import '../../token/MintableEmissionCapableMultiownedToken.sol';
 
 
 /// @title Test helper for MintableMultiownedToken, DONT use it in production!
-contract MintableMultiownedTokenTestHelper is MintableMultiownedToken {
+contract MintableEmissionCapableMultiownedTokenTestHelper is MintableEmissionCapableMultiownedToken {
 
-    function MintableMultiownedTokenTestHelper(address[] _owners, uint _signatures, address _minter)
-        MintableMultiownedToken(_owners, _signatures, _minter)
+    function MintableEmissionCapableMultiownedTokenTestHelper(address[] _owners, uint _signatures, address _minter)
+        public
+        MintableEmissionCapableMultiownedToken(_owners, _signatures, _minter)
     {
     }
 
-    function emission(uint256 _weiToEmit) external onlymanyowners(sha3(msg.data)) {
+    function emission(uint256 _weiToEmit) external onlymanyowners(keccak256(msg.data)) {
         emissionInternal(_weiToEmit);
     }
 }

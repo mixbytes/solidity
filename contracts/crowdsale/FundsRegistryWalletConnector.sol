@@ -19,8 +19,7 @@ import './FundsRegistry.sol';
  */
 contract FundsRegistryWalletConnector is IInvestmentsWalletConnector {
 
-    function FundsRegistryWalletConnector(address[] fundOwners, uint ownersSignatures)
-    {
+    function FundsRegistryWalletConnector(address[] fundOwners, uint ownersSignatures) public {
         m_fundsAddress = new FundsRegistry(fundOwners, ownersSignatures, this);
     }
 
@@ -45,7 +44,6 @@ contract FundsRegistryWalletConnector is IInvestmentsWalletConnector {
     /// @dev called in case crowdsale failed
     function wcOnCrowdsaleFailure() internal {
         m_fundsAddress.changeState(FundsRegistry.State.REFUNDING);
-        m_fundsAddress.detachController();
     }
 
     /// @notice address of wallet which stores funds

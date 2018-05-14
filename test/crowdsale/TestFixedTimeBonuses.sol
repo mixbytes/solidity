@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity ^0.4.15;
 
 import '../../contracts/crowdsale/FixedTimeBonuses.sol';
 import '../helpers/ThrowProxy.sol';
@@ -8,19 +8,19 @@ import 'truffle/Assert.sol';
 contract Bonuses {
     using FixedTimeBonuses for FixedTimeBonuses.Data;
 
-    function add(uint endTime, uint bonus) {
+    function add(uint endTime, uint bonus) public {
         m_bonuses.bonuses.push(FixedTimeBonuses.Bonus(endTime, bonus));
     }
 
-    function validate(bool shouldDecrease) constant {
+    function validate(bool shouldDecrease) public constant {
         m_bonuses.validate(shouldDecrease);
     }
 
-    function getLastTime() constant returns (uint) {
+    function getLastTime() public constant returns (uint) {
         return m_bonuses.getLastTime();
     }
 
-    function getBonus(uint time) constant returns (uint) {
+    function getBonus(uint time) public constant returns (uint) {
         return m_bonuses.getBonus(time);
     }
 
@@ -29,7 +29,7 @@ contract Bonuses {
 
 contract TestFixedTimeBonuses {
 
-    function testValidation() {
+    function testValidation() public {
         Bonuses b = new Bonuses();
         assertInvalid(b, false);
         assertInvalid(b, true);
@@ -47,7 +47,7 @@ contract TestFixedTimeBonuses {
         assertInvalid(b, true);
     }
 
-    function testValidationOfDoubles() {
+    function testValidationOfDoubles() public {
         Bonuses b = new Bonuses();
         b.add(1000000000, 50);
         b.add(1000000000, 40);
@@ -78,7 +78,7 @@ contract TestFixedTimeBonuses {
         assertInvalid(b, true);
     }
 
-    function testValidationOfDecrease() {
+    function testValidationOfDecrease() public {
         Bonuses b = new Bonuses();
         b.add(1000000000, 50);
         b.add(1000000010, 60);
@@ -94,7 +94,7 @@ contract TestFixedTimeBonuses {
         assertInvalid(b, true);
     }
 
-    function testGetLastTime() {
+    function testGetLastTime() public {
         Bonuses b = new Bonuses();
 
         b.add(1000000000, 50);
@@ -106,7 +106,7 @@ contract TestFixedTimeBonuses {
         Assert.equal(b.getLastTime(), 1000000010, "not eq");
     }
 
-    function testGetBonus() {
+    function testGetBonus() public {
         Bonuses b = new Bonuses();
         b.add(1000000000, 50);
         b.add(1000000010, 30);
@@ -132,7 +132,7 @@ contract TestFixedTimeBonuses {
     }
 
 
-    function assertInvalid(Bonuses b, bool shouldDecrease) private constant {
+    function assertInvalid(Bonuses b, bool shouldDecrease) private {
         ThrowProxy proxy = new ThrowProxy(b);
         Bonuses(proxy).validate(shouldDecrease);
         Assert.isTrue(proxy.thrown(), "must throw");

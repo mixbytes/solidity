@@ -275,41 +275,70 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
             expectedTokenBalances[role.investor2] = calcTokens(web3.toWei(100, 'finney'), settings.rate,
                     [settings.maxTimeBonus, paymentBonus]);
             await assertTokenBalances(token, expectedTokenBalances);
+
+            /*
+             * Final investment of this test.
+             * Care should be taken to reach soft cap and to know if hard cap was also reached and act accordingly.
+             */
+            if (settings.softCap && settings.hardCap)
+                assert(new web3.BigNumber(settings.hardCap).gte(settings.softCap));
+
+            let currentlyCollected = new web3.BigNumber(web3.toWei(120, 'finney'));
+            let finalInvestment = settings.softCap && currentlyCollected.lt(settings.softCap) ?
+                new web3.BigNumber(settings.softCap).sub(currentlyCollected) : new web3.BigNumber(web3.toWei(30, 'finney'));
+
+            let change = new web3.BigNumber(0);
+            if (settings.hardCap && currentlyCollected.add(finalInvestment).gt(settings.hardCap))
+                change = currentlyCollected.add(finalInvestment).sub(settings.hardCap);
+            const hardCapTriggered = settings.hardCap && currentlyCollected.add(finalInvestment).gte(settings.hardCap);
+
             // 2nd investment of investor1
-            await pay(crowdsale, {from: role.investor1, value: web3.toWei(30, 'finney')});
-            await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(150, 'finney'));
+            await pay(crowdsale, {from: role.investor1, value: finalInvestment, gasPrice: 0});
+
+            currentlyCollected = currentlyCollected.add(finalInvestment);
+            if (hardCapTriggered)
+                currentlyCollected = new web3.BigNumber(settings.hardCap);
+            await assertBalances(crowdsale, token, funds, cashInitial, currentlyCollected);
+
             expectedTokenBalances[role.investor1] = expectedTokenBalances[role.investor1].add(
-                    calcTokens(web3.toWei(30, 'finney'), settings.rate,
+                    calcTokens(finalInvestment.sub(change), settings.rate,
                             [settings.maxTimeBonus, paymentBonus]));
             await assertTokenBalances(token, expectedTokenBalances);
             if (! settings.tokenTransfersDuringSale)
                 await checkNoTransfers(token);
 
-            if (usingFund) {
+            if (usingFund)
                 await checkNotWithdrawing(crowdsale);
-                await checkNotSendingEther(funds);
+
+            if (!hardCapTriggered) {
+                if (! settings.tokenTransfersDuringSale)
+                    await checkNoTransfers(token);
+
+                if (usingFund)
+                    await checkNotSendingEther(funds);
             }
 
-            let shouldCheckWidthdraw = false;
-
-            if (settings.endTime) {
+            // If hard cap is not triggered yet, testing late transaction
+            if (settings.endTime && !hardCapTriggered) {
                 // too late
                 await crowdsale.setTime(settings.endTime, {from: role.owner1});
                 await runFirstPostSaleTx(pay(crowdsale, {from: role.investor2, value: web3.toWei(20, 'finney')}));
-                await assertBalances(crowdsale, token, funds, cashInitial, web3.toWei(150, 'finney'));
+                await assertBalances(crowdsale, token, funds, cashInitial, currentlyCollected);
                 await assertTokenBalances(token, expectedTokenBalances);    // anyway, nothing gained
+            }
+            // If hard cap is triggered, sale is finished
+            if (hardCapTriggered) {
+                const txPromise = pay(crowdsale, {from: role.investor2, value: web3.toWei(20, 'finney')});
+                if (!settings.postICOTxThrows)
+                    await txPromise;
+                else
+                    await expectThrow(txPromise);
+                await assertBalances(crowdsale, token, funds, cashInitial, currentlyCollected);
+                await assertTokenBalances(token, expectedTokenBalances);    // anyway, nothing gained
+            }
+
+            if (settings.endTime || hardCapTriggered) {
                 await checkNotInvesting(crowdsale, token, funds);
-
-                if (usingFund) {
-                    let fundsBalance = getFundsBalance(funds);
-
-                    if (fundsBalance < settings.softCap) {
-                        await checkNotWithdrawing(crowdsale);
-                    }
-                    else {
-                        shouldCheckWidthdraw = true;
-                    }
-                }
             }
 
             const totalSupply = await token.totalSupply();
@@ -320,11 +349,6 @@ export function crowdsaleUTest(accounts, instantiate, settings) {
                 assert.equal(await funds.getInvestorsCount(), 2);
                 assert.equal(await funds.m_investors(0), role.investor1);
                 assert.equal(await funds.m_investors(1), role.investor2);
-
-                if (shouldCheckWidthdraw) {
-                    // Try withdraw
-                    await crowdsale[settings.usingFundCrowdsalewithdrawPaymentsMethod]({from: role.investor1});
-                }
             }
         }]);
 

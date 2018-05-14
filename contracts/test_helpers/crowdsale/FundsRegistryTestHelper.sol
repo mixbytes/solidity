@@ -16,6 +16,7 @@ import '../../crowdsale/FundsRegistry.sol';
 contract FundsRegistryTestHelper is FundsRegistry {
 
     function FundsRegistryTestHelper(address[] _owners, uint _signaturesRequired, address _controller)
+        public
         FundsRegistry(_owners, _signaturesRequired, _controller)
     {
     }

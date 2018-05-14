@@ -5,12 +5,12 @@
 import {crowdsaleUTest} from '../utest/Crowdsale';
 
 const SimpleCrowdsaleTestHelper = artifacts.require("./test_helpers/crowdsale/SimpleCrowdsaleTestHelper.sol");
-const MintableMultiownedTokenTestHelper = artifacts.require("./test_helpers/token/MintableMultiownedTokenTestHelper.sol");
+const MintableMultiownedToken = artifacts.require("./token/MintableMultiownedToken.sol");
 
 
 contract('SimpleCrowdsaleTestHelper', function(accounts) {
     async function instantiate(role) {
-        const token = await MintableMultiownedTokenTestHelper.new(
+        const token = await MintableMultiownedToken.new(
             [role.owner1, role.owner2, role.owner3], 2, role.nobody, {from: role.nobody}
         );
         const crowdsale = await SimpleCrowdsaleTestHelper.new(
