@@ -13,7 +13,7 @@ contract('DividendToken', function(accounts) {
         return {
             owner1: accounts[0],
             owner2: accounts[1],
-            x: accounts[2],
+            owner3: accounts[2],
             investor1: accounts[2],
             investor2: accounts[3],
             investor3: accounts[4],
@@ -37,7 +37,7 @@ contract('DividendToken', function(accounts) {
 
         assert(owner1Balance.eq(50));
 
-        await token.transfer(role.owner2, 2, {from: role.owner1});
+        await token.transfer(role.owner2, 2, {from: role.owner1, gasPrice: 0});
 
         owner1Balance = await token.balanceOf(role.owner1);
         let owner2Balance = await token.balanceOf(role.owner2);
@@ -50,8 +50,8 @@ contract('DividendToken', function(accounts) {
             {from: role.investor1, value: web3.toWei(50, 'finney')}
         );
 
-        const initialOwner1Balance = web3.eth.getBalance(role.owner1);
-        const initialOwner2Balance = web3.eth.getBalance(role.owner2);
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+        let initialOwner2Balance = web3.eth.getBalance(role.owner2);
 
         await token.requestDividends({from: role.owner1, gasPrice: 0});
         await token.requestDividends({from: role.owner2, gasPrice: 0});
@@ -61,5 +61,22 @@ contract('DividendToken', function(accounts) {
         // Dividends were payed
         assert(web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(48, 'finney')));
         assert(web3.eth.getBalance(role.owner2).sub(initialOwner2Balance).eq(web3.toWei(2, 'finney')));
+
+        // Send yet another portion of ether
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(50, 'finney')}
+        );
+
+        let initialOwner3Balance = web3.eth.getBalance(role.owner3);
+        initialOwner1Balance = web3.eth.getBalance(role.owner1);
+
+        // Transfer some tokens to new user
+        await token.transfer(role.owner3, 10, {from: role.owner1, gasPrice: 0});
+
+        // owner1 eth balance should increase by still 48
+        // and owner 3 should get nothing
+        assert(web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(48, 'finney')));
+        assert(web3.eth.getBalance(role.owner3).sub(initialOwner3Balance).eq(0));
+
     });
 });
