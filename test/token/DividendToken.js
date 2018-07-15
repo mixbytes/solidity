@@ -26,24 +26,35 @@ contract('DividendToken', function(accounts) {
             message ? message + ': ' : ''));
     }
 
-    it("test requestDividends", async function() {
+    it("Test basis scenario", async function() {
+        /* SCENARIO
+         *
+         * Creating token and minting some tokens to owner.
+         * Transferring some tokens to another account and checking that they were transferred.
+         * Then new investor came and send some ether to token.
+         * Requesting dividends and checking that both owner got appropriate amount.
+         * Then another investor came and send new ether to token.
+         * After that owner fo tokens send some portion tokens to new account and we check that
+         * new account can't request any dividends.
+         */
         const role = getRoles();
 
         const token = await DividendTokenTestHelper.new({from: role.owner1});
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
 
         const initialTokenBalance = web3.eth.getBalance(token.address);
 
         let owner1Balance = await token.balanceOf(role.owner1);
 
-        assert(owner1Balance.eq(50));
+        assert(owner1Balance.eq(50), 'Tokens were minted to owner');
 
         await token.transfer(role.owner2, 2, {from: role.owner1, gasPrice: 0});
 
         owner1Balance = await token.balanceOf(role.owner1);
         let owner2Balance = await token.balanceOf(role.owner2);
 
-        assert(owner1Balance.eq(new web3.BigNumber(48)));
-        assert(owner2Balance.eq(new web3.BigNumber(2)));
+        assert(owner1Balance.eq(new web3.BigNumber(48)), "Owner1 balance after transfer is ok");
+        assert(owner2Balance.eq(new web3.BigNumber(2)), "Owner2 balance after transfer is ok");
 
         // Now let's send some ether to token
         await token.sendTransaction(
@@ -59,8 +70,14 @@ contract('DividendToken', function(accounts) {
         // Nothing last at token ether balance
         assert(web3.eth.getBalance(token.address).eq(0));
         // Dividends were payed
-        assert(web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(48, 'finney')));
-        assert(web3.eth.getBalance(role.owner2).sub(initialOwner2Balance).eq(web3.toWei(2, 'finney')));
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(48, 'finney')),
+            "Owner1 got appropriate dividends"
+        );
+        assert(
+            web3.eth.getBalance(role.owner2).sub(initialOwner2Balance).eq(web3.toWei(2, 'finney')),
+            "Owner2 got appropriate dividends"
+        );
 
         // Send yet another portion of ether
         await token.sendTransaction(
@@ -75,8 +92,55 @@ contract('DividendToken', function(accounts) {
 
         // owner1 eth balance should increase by still 48
         // and owner 3 should get nothing
-        assert(web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(48, 'finney')));
-        assert(web3.eth.getBalance(role.owner3).sub(initialOwner3Balance).eq(0));
-
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(48, 'finney')),
+            "Owner1 gets his dividends again"
+        );
+        assert(
+            web3.eth.getBalance(role.owner3).sub(initialOwner3Balance).eq(0),
+            "new user has no dividends"
+        );
     });
+
+    it("Test multiple emissions", async function() {
+        /* SCENARIO
+         *
+         * Mint tokens to owner and send some ether by investor.
+         * Mint tokens to another account and again send some ethe to token.
+         * then again Repeat it again with another account.
+         */
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(50, 'finney')}
+        );
+
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+        await token.requestDividends({from: role.owner1, gasPrice: 0});
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(50, 'finney')),
+            "Owner1 got appropriate dividends"
+        );
+
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(50, 'finney')}
+        );
+
+        assert(
+           web3.eth.getBalance(token.address).eq(web3.toWei(50, 'finney')),
+            "Token has appropriate ether balance"
+        );
+
+        initialOwner1Balance = web3.eth.getBalance(role.owner1);
+        await token.requestDividends({from: role.owner1, gasPrice: 0});
+
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(50, 'finney')),
+            "Owner1 got appropriate dividends"
+        );
+     });
 });

@@ -1,4 +1,4 @@
-// Copyright (C) 2017  MixBytes, LLC
+// Copyright (C) 2018  MixBytes, LLC
 
 // Licensed under the Apache License, Version 2.0 (the "License").
 // You may not use this file except in compliance with the License.
@@ -10,23 +10,25 @@
 pragma solidity ^0.4.15;
 
 import '../../token/DividendToken.sol';
+import 'zeppelin-solidity/contracts/token/MintableToken.sol';
 
 
 /// @title Test helper for MintableMultiownedToken, DONT use it in production!
-contract DividendTokenTestHelper is DividendToken {
+contract DividendTokenTestHelper is DividendToken, MintableToken {
     string public constant name = 'DVDND';
     string public constant symbol = 'DVDND';
     uint8 public constant decimals = 18;
 
-    function DividendTokenTestHelper() {
-        uint premintAmount = 50;
-        totalSupply = totalSupply.add(premintAmount);
-        balances[msg.sender] = balances[msg.sender].add(premintAmount);
-        Transfer(address(0), msg.sender, premintAmount);
+    function mint(address _to, uint256 _amount) onlyOwner canMint public returns (bool) {
+        payDividendsTo(_to);
+
+        bool res = super.mint(_to, _amount);
 
         m_emissions.push(EmissionInfo({
             totalSupply: totalSupply,
-            totalBalanceWas: this.balance
+            totalBalanceWas: m_totalDividends
         }));
+
+        return res;
     }
 }
