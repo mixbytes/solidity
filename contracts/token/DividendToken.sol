@@ -99,7 +99,13 @@ contract DividendToken is StandardToken {
 
         // We start with last processed emission because some ether could be collected before next emission
         // we pay all remaining ether collected and continue with all the next emissions
+        uint iter = 0;
+        uint iterMax = getMaxIterationsForRequestDividends();
+
         for (uint256 emissionToProcess = lastAccountEmissionNum; emissionToProcess <= lastEmissionNum; emissionToProcess++) {
+            if (++iter >= iterMax)
+                break;
+
             EmissionInfo storage emission = m_emissions[emissionToProcess];
 
             if (0 == emission.totalSupply)
@@ -126,6 +132,11 @@ contract DividendToken is StandardToken {
 
     function getLastEmissionNum() private constant returns (uint256) {
         return m_emissions.length - 1;
+    }
+
+    /// @dev to prevent gasLimit problems with many mintings
+    function getMaxIterationsForRequestDividends() private view returns (uint256) {
+        return 1000;
     }
 
     /// @notice record of issued dividend emissions
