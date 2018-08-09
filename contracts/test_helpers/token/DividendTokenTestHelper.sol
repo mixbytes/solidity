@@ -15,6 +15,8 @@ import 'zeppelin-solidity/contracts/token/MintableToken.sol';
 
 /// @title Test helper for MintableMultiownedToken, DONT use it in production!
 contract DividendTokenTestHelper is DividendToken, MintableToken {
+    event EmissionHappened(uint totalSupply, uint totalBalanceWas);
+
     string public constant name = 'DVDND';
     string public constant symbol = 'DVDND';
     uint8 public constant decimals = 18;
@@ -29,6 +31,11 @@ contract DividendTokenTestHelper is DividendToken, MintableToken {
             totalBalanceWas: m_totalDividends
         }));
 
+        EmissionHappened(totalSupply, m_totalDividends);
         return res;
+    }
+
+    function getMaxIterationsForRequestDividends() internal view returns (uint256) {
+        return 9;
     }
 }

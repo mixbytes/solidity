@@ -143,4 +143,90 @@ contract('DividendToken', function(accounts) {
             "Owner1 got appropriate dividends"
         );
      });
+
+    it("Test multiple pays during one emission", async function() {
+        /* SCENARIO
+         *
+         * Mint tokens to owner
+         * Pay ether by investors several times
+         * Request dividends once by the owner
+         */
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+
+        for (let i=0; i<5; ++i)  {
+            await token.sendTransaction(
+                {from: role.investor1, value: web3.toWei(50, 'finney')}
+            );
+        }
+
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+        await token.requestDividends({from: role.owner1, gasPrice: 0});
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(250, 'finney')),
+            "Owner1 got appropriate dividends"
+        );
+     });
+
+    it("Test check gas limit with restriction on the number of transactions", async function() {
+        /* SCENARIO
+         *
+         * 1. Mint tokens to owner
+         * 2. Pay ether by investors several times
+         * 3. repeat 1. and 2.  25 times
+         * Request dividends by the owner and check that he received not everything and can
+         * request again
+         */
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+        await token.mint(role.owner1, 1, {from: role.owner1, gasPrice: 0});
+
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+        let initialOwner2Balance = web3.eth.getBalance(role.owner2);
+
+        for (let i=0; i<15; ++i)  {
+            await token.mint(role.owner2, 1, {from: role.owner1, gasPrice: 0});
+
+            await token.sendTransaction(
+                {
+                    from: role.investor2,
+                    value: web3.toWei(2+i, 'finney'),
+                    gasPrice: 0
+                }
+            );
+
+            // Nothing was paid to owner1
+            assert(
+                web3.eth.getBalance(role.owner1).eq(initialOwner1Balance),
+                "Nothing was paid to owner1"
+            );
+
+            // But owner2 got dividends because of minting
+            assert(
+                web3.eth.getBalance(role.owner2).sub(initialOwner2Balance).eq(
+                    web3.toWei( i*(i+1)/2, 'finney')
+                ),
+                "Owner2 got dividends because of minting"
+            );
+        }
+
+        await token.requestDividends({from: role.owner1, gasPrice: 0});
+
+        // considering zero emission at constructor
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).sub(web3.toWei(8, 'finney')).eq(0),
+            "Owner1 got appropriate dividends first request"
+        );
+
+        await token.requestDividends({from: role.owner1, gasPrice: 0});
+
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(15, 'finney')),
+            "Owner1 got appropriate dividends second request"
+        );
+     });
 });

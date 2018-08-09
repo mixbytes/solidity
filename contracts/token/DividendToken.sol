@@ -63,7 +63,7 @@ contract DividendToken is StandardToken {
 
     /// @dev adds dividends to the account _to
     function payDividendsTo(address _to) internal {
-        var (hasNewDividends, dividends) = calculateDividendsFor(_to);
+        var (hasNewDividends, dividends, lastProcessedEmissionNum) = calculateDividendsFor(_to);
         if (!hasNewDividends)
             return;
 
@@ -72,13 +72,22 @@ contract DividendToken is StandardToken {
             PayDividend(_to, dividends);
         }
 
-        m_lastAccountEmission[_to] = getLastEmissionNum();
-        m_lastDividents[_to] = m_totalDividends;
+        m_lastAccountEmission[_to] = lastProcessedEmissionNum;
+        if (lastProcessedEmissionNum == getLastEmissionNum()) {
+            m_lastDividents[_to] = m_totalDividends;
+        }
+        else {
+            m_lastDividents[_to] = m_emissions[lastProcessedEmissionNum.add(1)].totalBalanceWas;
+        }
     }
 
     /// @dev calculates dividends for the account _for
-    /// @return (true if state has to be updated, dividend amount (could be 0!))
-    function calculateDividendsFor(address _for) constant internal returns (bool hasNewDividends, uint dividends) {
+    /// @return (true if state has to be updated, dividend amount (could be 0!), lastProcessedEmissionNum)
+    function calculateDividendsFor(address _for) constant internal returns (
+        bool hasNewDividends,
+        uint dividends,
+        uint lastProcessedEmissionNum
+    ) {
         uint256 lastEmissionNum = getLastEmissionNum();
         uint256 lastAccountEmissionNum = m_lastAccountEmission[_for];
         assert(lastAccountEmissionNum <= lastEmissionNum);
@@ -89,13 +98,13 @@ contract DividendToken is StandardToken {
 
         // If no new ether was collected since last dividends claim
         if (m_totalDividends == totalBalanceWasWhenLastPay)
-            return (false, 0);
+            return (false, 0, lastAccountEmissionNum);
 
         uint256 initialBalance = balances[_for];    // beware of recursion!
 
         // if no tokens owned by account
         if (0 == initialBalance)
-            return (true, 0);
+            return (true, 0, lastAccountEmissionNum);
 
         // We start with last processed emission because some ether could be collected before next emission
         // we pay all remaining ether collected and continue with all the next emissions
@@ -103,9 +112,10 @@ contract DividendToken is StandardToken {
         uint iterMax = getMaxIterationsForRequestDividends();
 
         for (uint256 emissionToProcess = lastAccountEmissionNum; emissionToProcess <= lastEmissionNum; emissionToProcess++) {
-            if (++iter >= iterMax)
+            if (iter++ > iterMax)
                 break;
 
+            lastAccountEmissionNum = emissionToProcess;
             EmissionInfo storage emission = m_emissions[emissionToProcess];
 
             if (0 == emission.totalSupply)
@@ -123,11 +133,10 @@ contract DividendToken is StandardToken {
             }
 
             uint256 dividend = totalEtherDuringEmission.mul(initialBalance).div(emission.totalSupply);
-
             dividends = dividends.add(dividend);
         }
 
-        return (true, dividends);
+        return (true, dividends, lastAccountEmissionNum);
     }
 
     function getLastEmissionNum() private constant returns (uint256) {
@@ -135,7 +144,7 @@ contract DividendToken is StandardToken {
     }
 
     /// @dev to prevent gasLimit problems with many mintings
-    function getMaxIterationsForRequestDividends() private view returns (uint256) {
+    function getMaxIterationsForRequestDividends() internal view returns (uint256) {
         return 1000;
     }
 
