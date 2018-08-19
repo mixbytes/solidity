@@ -21,11 +21,6 @@ contract('DividendToken', function(accounts) {
         };
     }
 
-    function assertBigNumberEqual(actual, expected, message=undefined) {
-        assert(actual.eq(expected), "{2}expected {0}, but got: {1}".format(expected, actual,
-            message ? message + ': ' : ''));
-    }
-
     it("Test basis scenario", async function() {
         /* SCENARIO
          *
@@ -227,6 +222,62 @@ contract('DividendToken', function(accounts) {
         assert(
             web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(15, 'finney')),
             "Owner1 got appropriate dividends second request"
+        );
+     });
+
+    it("Test transfer works", async function() {
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+
+        // somebody came and send ether
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(50, 'finney')}
+        );
+
+        await token.transfer(role.owner2, 25, {from: role.owner1, gasPrice: 0});
+
+        let owner1TokenBalance = await token.balanceOf(role.owner1);
+        let owner2TokenBalance = await token.balanceOf(role.owner2);
+
+        assert(
+            owner1TokenBalance.eq(25),
+            "Owner1 has appropriate number of tokens"
+        );
+
+        assert(
+            owner2TokenBalance.eq(25),
+            "Owner2 has appropriate number of tokens"
+        );
+     });
+
+    it("Test to oneself works and dividends are payed correctly", async function() {
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(100, 'finney')}
+        );
+
+        await token.transfer(role.owner1, 25, {from: role.owner1, gasPrice: 0});
+
+        let owner1TokenBalance = await token.balanceOf(role.owner1);
+
+        assert(
+            owner1TokenBalance.eq(50),
+            "Owner1 has appropriate number of tokens"
+        );
+
+        console.log('haha', web3.eth.getBalance(role.owner1).sub(initialOwner1Balance));
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(100, 'finney')),
+            "Owner1 got appropriate dividends"
         );
      });
 });
