@@ -252,7 +252,7 @@ contract('DividendToken', function(accounts) {
         );
      });
 
-    it("Test to oneself works and dividends are payed correctly", async function() {
+    it("Test transfer to oneself works and dividends are payed correctly", async function() {
         const role = getRoles();
 
         const token = await DividendTokenTestHelper.new({from: role.owner1});
@@ -274,10 +274,59 @@ contract('DividendToken', function(accounts) {
             "Owner1 has appropriate number of tokens"
         );
 
-        console.log('haha', web3.eth.getBalance(role.owner1).sub(initialOwner1Balance));
         assert(
             web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(100, 'finney')),
             "Owner1 got appropriate dividends"
         );
      });
+
+    it("Test transferFrom to oneself works and dividends are payed correctly", async function() {
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+        let initialOwner2Balance = web3.eth.getBalance(role.owner2);
+
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(100, 'finney')}
+        );
+
+        await token.approve(role.owner2, 20, {from: role.owner1, gasPrice: 0});
+
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(100, 'finney')}
+        );
+
+        await token.transferFrom(role.owner1, role.owner2, 15, {from: role.owner2, gasPrice: 0});
+
+        let owner1TokenBalance = await token.balanceOf(role.owner1);
+        let owner2TokenBalance = await token.balanceOf(role.owner2);
+
+        assert(owner1TokenBalance.eq(35), "Owner1 has appropriate number of tokens");
+        assert(owner2TokenBalance.eq(15), "Owner2 has appropriate number of tokens");
+
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(200, 'finney')),
+            "Owner1 got appropriate dividends"
+        );
+
+        assert(
+            web3.eth.getBalance(role.owner2).sub(initialOwner2Balance).eq(web3.toWei(0, 'finney')),
+            "Owner2 got nothing"
+        );
+
+        initialOwner1Balance = web3.eth.getBalance(role.owner1);
+
+        // Now let's transfer lasting 5 tokens from owner to owner just to check
+        await token.transferFrom(role.owner1, role.owner1, 5, {from: role.owner2, gasPrice: 0});
+        assert(owner1TokenBalance.eq(35), "Owner1 has appropriate number of tokens");
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(0, 'finney')),
+            "Owner1 got nothing second time"
+        );
+     });
+
 });
