@@ -35,7 +35,7 @@ contract DividendTokenTestHelper is DividendToken, MintableToken {
         return res;
     }
 
-    function getMaxIterationsForRequestDividends() internal view returns (uint256) {
+    function getMaxIterationsForRequestDividends() internal constant returns (uint256) {
         return 9;
     }
 }

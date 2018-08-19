@@ -144,19 +144,19 @@ contract DividendToken is StandardToken {
     }
 
     /// @dev to prevent gasLimit problems with many mintings
-    function getMaxIterationsForRequestDividends() internal view returns (uint256) {
+    function getMaxIterationsForRequestDividends() internal constant returns (uint256) {
         return 1000;
     }
 
     /// @notice record of issued dividend emissions
-    EmissionInfo[] m_emissions;
+    EmissionInfo[] public m_emissions;
 
     /// @dev for each token holder: last emission (index in m_emissions) which was processed for this holder
-    mapping(address => uint256) m_lastAccountEmission;
+    mapping(address => uint256) public m_lastAccountEmission;
 
     /// @dev for each token holder: last ether balance was when requested dividends
-    mapping(address => uint256) m_lastDividents;
+    mapping(address => uint256) public m_lastDividents;
 
 
-    uint256 m_totalDividends;
+    uint256 public m_totalDividends;
 }
