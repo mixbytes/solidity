@@ -11,11 +11,13 @@ pragma solidity ^0.4.15;
 
 import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 
-import '../ownership/multiowned.sol';
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
-contract DividendToken is StandardToken {
+contract DividendToken is StandardToken, Ownable {
     event PayDividend(address indexed to, uint256 amount);
+    event HangingDividend(address indexed to, uint256 amount) ;
+    event PayHangingDividend(uint256 amount) ;
     event Deposit(address indexed sender, uint value);
 
     /// @dev parameters of an extra token emission
@@ -47,6 +49,13 @@ contract DividendToken is StandardToken {
         payDividendsTo(msg.sender);
     }
 
+    /// @notice Request hanging dividends to pwner.
+    function requestHangingDividends() onlyOwner public {
+        owner.transfer(m_totalHangingDividends);
+        PayHangingDividend(m_totalHangingDividends);
+        m_totalHangingDividends = 0;
+    }
+
     /// @notice hook on standard ERC20#transfer to pay dividends
     function transfer(address _to, uint256 _value) public returns (bool) {
         payDividendsTo(msg.sender);
@@ -68,8 +77,15 @@ contract DividendToken is StandardToken {
             return;
 
         if (0 != dividends) {
-            _to.transfer(dividends);
-            PayDividend(_to, dividends);
+            bool res = _to.send(dividends);
+            if (res) {
+                PayDividend(_to, dividends);
+            }
+            else{
+                // _to probably is a contract not able to receive ether
+                HangingDividend(_to, dividends);
+                m_totalHangingDividends = m_totalHangingDividends.add(dividends);
+            }
         }
 
         m_lastAccountEmission[_to] = lastProcessedEmissionNum;
@@ -104,7 +120,7 @@ contract DividendToken is StandardToken {
 
         // if no tokens owned by account
         if (0 == initialBalance)
-            return (true, 0, lastAccountEmissionNum);
+            return (true, 0, lastEmissionNum);
 
         // We start with last processed emission because some ether could be collected before next emission
         // we pay all remaining ether collected and continue with all the next emissions
@@ -124,7 +140,6 @@ contract DividendToken is StandardToken {
             uint totalEtherDuringEmission;
             // last emission we stopped on
             if (emissionToProcess == lastEmissionNum) {
-                totalEtherDuringEmission = 0;
                 totalEtherDuringEmission = m_totalDividends.sub(totalBalanceWasWhenLastPay);
             }
             else {
@@ -158,5 +173,6 @@ contract DividendToken is StandardToken {
     mapping(address => uint256) public m_lastDividents;
 
 
+    uint256 public m_totalHangingDividends;
     uint256 public m_totalDividends;
 }

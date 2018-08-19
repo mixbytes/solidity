@@ -3,6 +3,9 @@
 import expectThrow from '../helpers/expectThrow';
 
 const DividendTokenTestHelper = artifacts.require("../test_helpers/token/DividendTokenTestHelper.sol");
+// Some contract that can't accept ether
+const DummyContract = artifacts.require("../test_helpers/DummyHelper.sol");
+
 
 const l = console.log;
 
@@ -326,6 +329,60 @@ contract('DividendToken', function(accounts) {
         assert(
             web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(0, 'finney')),
             "Owner1 got nothing second time"
+        );
+     });
+
+    it("Hanging dividends", async function() {
+        const role = getRoles();
+
+        const token = await DividendTokenTestHelper.new({from: role.owner1});
+        const dummyContract = await DummyContract.new({from: role.owner2});
+
+        let initialOwner1Balance = web3.eth.getBalance(role.owner1);
+
+        await token.mint(role.owner1, 50, {from: role.owner1, gasPrice: 0});
+
+        await token.transfer(dummyContract.address, 19, {from: role.owner1, gasPrice: 0});
+        await token.transfer(dummyContract.address, 1, {from: role.owner1, gasPrice: 0});
+
+        // somebody came and send ether
+        await token.sendTransaction(
+            {from: role.investor1, value: web3.toWei(100, 'finney')}
+        );
+
+        let result = await token.transfer(dummyContract.address, 5, {from: role.owner1, gasPrice: 0});
+
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(60, 'finney')),
+            "Owner1 got nothing second time"
+        );
+
+        let hangingDividendsEventExists = false;
+        for (let log of result.logs) {
+            if(log.event == 'HangingDividend')
+                hangingDividendsEventExists = true;
+        }
+
+        assert(hangingDividendsEventExists, "HangingDividend event must be recorded")
+
+        let owner1TokenBalance = await token.balanceOf(role.owner1);
+        let dummyContractTokenBalance = await token.balanceOf(dummyContract.address);
+
+        assert(
+            owner1TokenBalance.eq(25),
+            "Owner1 has appropriate number of tokens"
+        );
+
+        assert(
+            dummyContractTokenBalance.eq(25),
+            "dummy contract has appropriate number of tokens"
+        );
+
+        await token.requestHangingDividends({from: role.owner1, gasPrice: 0});
+
+        assert(
+            web3.eth.getBalance(role.owner1).sub(initialOwner1Balance).eq(web3.toWei(100, 'finney')),
+            "Owner1 got hanging dividends"
         );
      });
 
