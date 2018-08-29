@@ -86,6 +86,7 @@ contract InvestmentAnalytics {
     /// @dev callback which must be overridden
     function iaOnInvested(address /*investor*/, uint256 /*payment*/, bool /*usingPaymentChannel*/) internal {
         assert(false);  // must be overridden
+        m_paymentChannels[0] = address(0); // useles code to suppress solc warning
     }
 
 
