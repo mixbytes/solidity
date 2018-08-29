@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import './IInvestmentsWalletConnector.sol';
 import './FundsRegistry.sol';
@@ -19,19 +19,17 @@ import './FundsRegistry.sol';
  */
 contract FundsRegistryWalletConnector is IInvestmentsWalletConnector {
 
-    function FundsRegistryWalletConnector(address[] fundOwners, uint ownersSignatures) public {
+    constructor(address[] fundOwners, uint256 ownersSignatures) public {
         m_fundsAddress = new FundsRegistry(fundOwners, ownersSignatures, this);
     }
 
     /// @dev process and forward investment
-    function storeInvestment(address investor, uint payment) internal
-    {
+    function storeInvestment(address investor, uint256 payment) internal {
         m_fundsAddress.invested.value(payment)(investor);
     }
 
     /// @dev total investments amount stored using storeInvestment()
-    function getTotalInvestmentsStored() internal constant returns (uint)
-    {
+    function getTotalInvestmentsStored() internal view returns (uint256) {
         return m_fundsAddress.totalInvested();
     }
 

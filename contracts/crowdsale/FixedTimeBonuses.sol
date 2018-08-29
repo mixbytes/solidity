@@ -7,14 +7,14 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 
 library FixedTimeBonuses {
 
     struct Bonus {
-        uint endTime;
-        uint bonus;
+        uint256 endTime;
+        uint256 bonus;
     }
 
     struct Data {
@@ -24,12 +24,12 @@ library FixedTimeBonuses {
     /// @dev validates consistency of data structure
     /// @param self data structure
     /// @param shouldDecrease additionally check if bonuses are decreasing over time
-    function validate(Data storage self, bool shouldDecrease) internal constant {
-        uint length = self.bonuses.length;
+    function validate(Data storage self, bool shouldDecrease) internal view {
+        uint256 length = self.bonuses.length;
         require(length > 0);
 
         Bonus storage last = self.bonuses[0];
-        for (uint i = 1; i < length; i++) {
+        for (uint256 i = 1; i < length; i++) {
             Bonus storage current = self.bonuses[i];
             require(current.endTime > last.endTime);
             if (shouldDecrease)
@@ -40,17 +40,17 @@ library FixedTimeBonuses {
 
     /// @dev get ending time of the last bonus
     /// @param self data structure
-    function getLastTime(Data storage self) internal constant returns (uint) {
+    function getLastTime(Data storage self) internal view returns (uint256) {
         return self.bonuses[self.bonuses.length - 1].endTime;
     }
 
     /// @dev validates consistency of data structure
     /// @param self data structure
     /// @param time time for which bonus must be computed (assuming time <= getLastTime())
-    function getBonus(Data storage self, uint time) internal constant returns (uint) {
+    function getBonus(Data storage self, uint256 time) internal view returns (uint256) {
         // TODO binary search?
-        uint length = self.bonuses.length;
-        for (uint i = 0; i < length; i++) {
+        uint256 length = self.bonuses.length;
+        for (uint256 i = 0; i < length; i++) {
             if (self.bonuses[i].endTime >= time)
                 return self.bonuses[i].bonus;
         }

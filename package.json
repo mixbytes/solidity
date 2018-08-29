@@ -2,7 +2,10 @@
   "name": "mixbytes-solidity",
   "version": "0.1.9",
   "description": "Generic solidity smart-contracts",
-  "scripts": {},
+  "scripts": {
+    "test": "./node_modules/.bin/truffle test",
+    "develop": "./node_modules/.bin/truffle develop"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/mixbytes/solidity"
@@ -26,7 +29,8 @@
     "babel-preset-stage-3": "^6.17.0",
     "babel-register": "^6.23.0",
     "ganache-cli": "^6.0.3",
-    "truffle": "4.0.6",
+    "solc": "^0.4.24",
+    "truffle": "^4.1.14",
     "zeppelin-solidity": "1.4.0"
   }
 }
