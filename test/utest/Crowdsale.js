@@ -4,7 +4,7 @@
 
 'use strict';
 
-import expectThrow from '../helpers/expectThrow';
+import {expectThrow} from 'openzeppelin-solidity/test/helpers/expectThrow';
 import {l} from '../helpers/debug';
 import '../helpers/typeExt';
 
