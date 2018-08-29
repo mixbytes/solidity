@@ -11,8 +11,8 @@ pragma solidity ^0.4.24;
 
 import '../ownership/MultiownedControlled.sol';
 import '../security/ArgumentsChecker.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
 
 
 /// @title registry of funds sent by investors

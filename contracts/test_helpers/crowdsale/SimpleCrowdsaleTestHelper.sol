@@ -3,7 +3,7 @@ pragma solidity ^0.4.24;
 import '../../crowdsale/SimpleCrowdsaleBase.sol';
 import '../../crowdsale/ExternalAccountWalletConnector.sol';
 import '../../crowdsale/InvestmentAnalytics.sol';
-import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+import 'openzeppelin-solidity/contracts/ownership/Ownable.sol';
 
 
 /// @title SimpleCrowdsaleTestHelper pre-sale contract. DON'T use it in production!

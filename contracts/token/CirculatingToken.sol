@@ -9,7 +9,7 @@
 
 pragma solidity ^0.4.24;
 
-import 'zeppelin-solidity/contracts/token/StandardToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 
 /// @title StandardToken which circulation can be delayed and started by another contract.

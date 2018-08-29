@@ -13,8 +13,8 @@ import '../security/ArgumentsChecker.sol';
 import '../token/MintableToken.sol';
 import './IInvestmentsWalletConnector.sol';
 import './ICrowdsaleStat.sol';
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 
 /// @title Base contract for simple crowdsales

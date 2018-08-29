@@ -84,9 +84,9 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
      */
     function emissionInternal(uint256 _tokensCreated) internal {
         require(0 != _tokensCreated);
-        require(_tokensCreated < totalSupply / 2);  // otherwise it looks like an error
+        require(_tokensCreated < totalSupply() / 2);  // otherwise it looks like an error
 
-        uint256 totalSupplyWas = totalSupply;
+        uint256 totalSupplyWas = totalSupply();
 
         m_emissions.push(EmissionInfo({created: _tokensCreated, totalSupplyWas: totalSupplyWas}));
         mintInternal(dividendsPool, _tokensCreated);

@@ -11,7 +11,7 @@ pragma solidity ^0.4.24;
 
 import './multiowned.sol';
 import './SimpleMultiSigWallet.sol';
-import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol';
 
 
 /**
