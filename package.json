@@ -4,7 +4,8 @@
   "description": "Generic solidity smart-contracts",
   "scripts": {
     "test": "./node_modules/.bin/truffle test",
-    "develop": "./node_modules/.bin/truffle develop"
+    "develop": "./node_modules/.bin/truffle develop",
+    "compile": "./node_modules/.bin/truffle compile"
   },
   "repository": {
     "type": "git",
