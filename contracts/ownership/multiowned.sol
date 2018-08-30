@@ -26,7 +26,7 @@ pragma solidity ^0.4.24;
 // TODO acceptOwnership
 contract multiowned {
 
-	// TYPES
+    // TYPES
 
     // struct for the status of a pending operation.
     struct MultiOwnedOperationPendingState {
@@ -40,7 +40,7 @@ contract multiowned {
         uint256 index;
     }
 
-	// EVENTS
+    // EVENTS
 
     event Confirmation(address owner, bytes32 operation);
     event Revoke(address owner, bytes32 operation);
@@ -54,7 +54,7 @@ contract multiowned {
     // the last one is emitted if the required signatures change
     event RequirementChanged(uint256 newRequirement);
 
-	// MODIFIERS
+    // MODIFIERS
 
     // simple single-sig function modifier.
     modifier onlyowner {
@@ -98,7 +98,7 @@ contract multiowned {
         _;
     }
 
-	// METHODS
+    // METHODS
 
     // constructor is given number of sigs required to do protected "onlymanyowners" transactions
     // as well as the selection of addresses capable of confirming them (msg.sender is not added to the owners!).
@@ -382,7 +382,7 @@ contract multiowned {
     }
 
 
-   	// FIELDS
+    // FIELDS
 
     uint256 constant c_maxOwners = 250;
 
