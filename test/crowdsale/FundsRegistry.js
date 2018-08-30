@@ -2,7 +2,7 @@
 
 // testrpc has to be run as testrpc -u 0 -u 1 -u 2 -u 3 -u 4
 
-import expectThrow from '../helpers/expectThrow';
+import {expectThrow} from 'openzeppelin-solidity/test/helpers/expectThrow';
 
 const FundsRegistry = artifacts.require("./FundsRegistry.sol");
 const l = console.log;

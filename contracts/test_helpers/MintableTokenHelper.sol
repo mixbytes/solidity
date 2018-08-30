@@ -7,9 +7,9 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
-import 'zeppelin-solidity/contracts/token/MintableToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol';
 
 
 contract MintableTokenHelper is MintableToken {

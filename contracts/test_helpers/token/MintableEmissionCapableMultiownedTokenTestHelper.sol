@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../../token/MintableEmissionCapableMultiownedToken.sol';
 
@@ -15,7 +15,7 @@ import '../../token/MintableEmissionCapableMultiownedToken.sol';
 /// @title Test helper for MintableMultiownedToken, DONT use it in production!
 contract MintableEmissionCapableMultiownedTokenTestHelper is MintableEmissionCapableMultiownedToken {
 
-    function MintableEmissionCapableMultiownedTokenTestHelper(address[] _owners, uint _signatures, address _minter)
+    constructor (address[] _owners, uint256 _signatures, address _minter)
         public
         MintableEmissionCapableMultiownedToken(_owners, _signatures, _minter)
     {

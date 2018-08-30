@@ -1,6 +1,6 @@
 'use strict';
 
-import expectThrow from '../helpers/expectThrow';
+import {expectThrow} from 'openzeppelin-solidity/test/helpers/expectThrow';
 
 const SimpleMultiSigWallet = artifacts.require("./SimpleMultiSigWallet.sol");
 const Token = artifacts.require("MintableTokenHelper.sol");

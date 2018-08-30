@@ -7,12 +7,12 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../ownership/MultiownedControlled.sol';
 import '../security/ArgumentsChecker.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
 
 
 /// @title registry of funds sent by investors
@@ -30,8 +30,8 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
 
     event StateChanged(State _state);
     event Invested(address indexed investor, uint256 amount);
-    event EtherSent(address indexed to, uint value);
-    event RefundSent(address indexed to, uint value);
+    event EtherSent(address indexed to, uint256 value);
+    event RefundSent(address indexed to, uint256 value);
 
 
     modifier requiresState(State _state) {
@@ -42,7 +42,7 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
 
     // PUBLIC interface
 
-    function FundsRegistry(address[] _owners, uint _signaturesRequired, address _controller)
+    constructor (address[] _owners, uint256 _signaturesRequired, address _controller)
         public
         MultiownedControlled(_owners, _signaturesRequired, _controller)
     {
@@ -59,7 +59,7 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
         else assert(false);
 
         m_state = _newState;
-        StateChanged(m_state);
+        emit StateChanged(m_state);
     }
 
     /// @dev records an investment
@@ -81,21 +81,21 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
         totalInvested = totalInvested.add(amount);
         m_weiBalances[_investor] = m_weiBalances[_investor].add(amount);
 
-        Invested(_investor, amount);
+        emit Invested(_investor, amount);
     }
 
     /// @notice owners: send `value` of ether to address `to`, can be called if crowdsale succeeded
     /// @param to where to send ether
     /// @param value amount of wei to send
-    function sendEther(address to, uint value)
+    function sendEther(address to, uint256 value)
         external
         validAddress(to)
         onlymanyowners(keccak256(msg.data))
         requiresState(State.SUCCEEDED)
     {
-        require(value > 0 && this.balance >= value);
+        require(value > 0 && address(this).balance >= value);
         to.transfer(value);
-        EtherSent(to, value);
+        emit EtherSent(to, value);
     }
 
     /// @notice withdraw accumulated balance, called by payee in case crowdsale failed
@@ -108,16 +108,16 @@ contract FundsRegistry is ArgumentsChecker, MultiownedControlled, ReentrancyGuar
         uint256 payment = m_weiBalances[payee];
 
         require(payment != 0);
-        require(this.balance >= payment);
+        require(address(this).balance >= payment);
 
         totalInvested = totalInvested.sub(payment);
         m_weiBalances[payee] = 0;
 
         payee.transfer(payment);
-        RefundSent(payee, payment);
+        emit RefundSent(payee, payment);
     }
 
-    function getInvestorsCount() external constant returns (uint) { return m_investors.length; }
+    function getInvestorsCount() external view returns (uint256) { return m_investors.length; }
 
 
     // FIELDS

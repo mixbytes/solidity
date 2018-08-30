@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import './MintableMultiownedToken.sol';
 
@@ -30,7 +30,7 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
 
     // PUBLIC interface
 
-    function MintableEmissionCapableMultiownedToken(address[] _owners, uint _signaturesRequired, address _minter)
+    constructor (address[] _owners, uint256 _signaturesRequired, address _minter)
         public
         MintableMultiownedToken(_owners, _signaturesRequired, _minter)
     {
@@ -84,33 +84,33 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
      */
     function emissionInternal(uint256 _tokensCreated) internal {
         require(0 != _tokensCreated);
-        require(_tokensCreated < totalSupply / 2);  // otherwise it looks like an error
+        require(_tokensCreated < totalSupply() / 2);  // otherwise it looks like an error
 
-        uint256 totalSupplyWas = totalSupply;
+        uint256 totalSupplyWas = totalSupply();
 
         m_emissions.push(EmissionInfo({created: _tokensCreated, totalSupplyWas: totalSupplyWas}));
         mintInternal(dividendsPool, _tokensCreated);
 
-        Emission(_tokensCreated, totalSupplyWas, now);
+        emit Emission(_tokensCreated, totalSupplyWas, now);
     }
 
     /// @dev adds dividends to the account _to
     function payDividendsTo(address _to) internal {
-        var (hasNewDividends, dividends) = calculateDividendsFor(_to);
+        (bool hasNewDividends, uint256 dividends) = calculateDividendsFor(_to);
         if (!hasNewDividends)
             return;
 
         if (0 != dividends) {
             balances[dividendsPool] = balances[dividendsPool].sub(dividends);
             balances[_to] = balances[_to].add(dividends);
-            Transfer(dividendsPool, _to, dividends);
+            emit Transfer(dividendsPool, _to, dividends);
         }
         m_lastAccountEmission[_to] = getLastEmissionNum();
     }
 
     /// @dev calculates dividends for the account _for
     /// @return (true if state has to be updated, dividend amount (could be 0!))
-    function calculateDividendsFor(address _for) internal returns (bool hasNewDividends, uint dividends) {
+    function calculateDividendsFor(address _for) internal returns (bool hasNewDividends, uint256 dividends) {
         assert(_for != dividendsPool);  // no dividends for the pool!
 
         uint256 lastEmissionNum = getLastEmissionNum();
@@ -129,7 +129,7 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
             assert(0 != emission.created && 0 != emission.totalSupplyWas);
 
             uint256 dividend = balance.mul(emission.created).div(emission.totalSupplyWas);
-            Dividend(_for, dividend);
+            emit Dividend(_for, dividend);
 
             balance = balance.add(dividend);
         }
@@ -137,7 +137,7 @@ contract MintableEmissionCapableMultiownedToken is MintableMultiownedToken {
         return (true, balance.sub(initialBalance));
     }
 
-    function getLastEmissionNum() private constant returns (uint256) {
+    function getLastEmissionNum() private view returns (uint256) {
         return m_emissions.length - 1;
     }
 

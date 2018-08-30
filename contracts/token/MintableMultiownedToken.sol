@@ -7,11 +7,11 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../ownership/MultiownedControlled.sol';
 import './MintableToken.sol';
-import 'zeppelin-solidity/contracts/token/StandardToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 
 /// @title StandardToken which can be minted by another contract.
@@ -19,7 +19,7 @@ contract MintableMultiownedToken is MintableToken, MultiownedControlled, Standar
 
     // PUBLIC interface
 
-    function MintableMultiownedToken(address[] _owners, uint _signaturesRequired, address _minter)
+    constructor (address[] _owners, uint256 _signaturesRequired, address _minter)
         public
         MultiownedControlled(_owners, _signaturesRequired, _minter)
     {
@@ -42,10 +42,10 @@ contract MintableMultiownedToken is MintableToken, MultiownedControlled, Standar
     // INTERNAL functions
 
     function mintInternal(address _to, uint256 _amount) internal {
-        totalSupply = totalSupply.add(_amount);
+        totalSupply_ = totalSupply_.add(_amount);
         balances[_to] = balances[_to].add(_amount);
-        Transfer(address(0), _to, _amount);
-        Mint(_to, _amount);
+        emit Transfer(address(0), _to, _amount);
+        emit Mint(_to, _amount);
     }
 
 

@@ -7,9 +7,9 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
 
 /*
@@ -20,7 +20,7 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
  */
 contract AnalyticProxy {
 
-    function AnalyticProxy() public {
+    constructor() public {
         m_analytics = InvestmentAnalytics(msg.sender);
     }
 
@@ -40,14 +40,14 @@ contract AnalyticProxy {
 contract InvestmentAnalytics {
     using SafeMath for uint256;
 
-    function InvestmentAnalytics() public {
+    constructor() public {
     }
 
     /// @dev creates more payment channels, up to the limit but not exceeding gas stipend
-    function createMorePaymentChannelsInternal(uint limit) internal returns (uint) {
-        uint paymentChannelsCreated;
-        for (uint i = 0; i < limit; i++) {
-            uint startingGas = msg.gas;
+    function createMorePaymentChannelsInternal(uint256 limit) internal returns (uint256) {
+        uint256 paymentChannelsCreated;
+        for (uint256 i = 0; i < limit; i++) {
+            uint256 startingGas = gasleft();
             /*
              * ~170k of gas per paymentChannel,
              * using gas price = 4Gwei 2k paymentChannels will cost ~1.4 ETH.
@@ -59,8 +59,8 @@ contract InvestmentAnalytics {
             paymentChannelsCreated++;
 
             // cost of creating one channel
-            uint gasPerChannel = startingGas.sub(msg.gas);
-            if (gasPerChannel.add(50000) > msg.gas)
+            uint256 gasPerChannel = startingGas.sub(gasleft());
+            if (gasPerChannel.add(50000) > gasleft())
                 break;  // enough proxies for this call
         }
         return paymentChannelsCreated;
@@ -72,7 +72,7 @@ contract InvestmentAnalytics {
         address paymentChannel = msg.sender;
         if (m_validPaymentChannels[paymentChannel]) {
             // payment received by one of our channels
-            uint value = msg.value;
+            uint256 value = msg.value;
             m_investmentsByPaymentChannel[paymentChannel] = m_investmentsByPaymentChannel[paymentChannel].add(value);
             // We know for sure that investment came from specified investor (see AnalyticProxy).
             iaOnInvested(investor, value, true);
@@ -84,20 +84,21 @@ contract InvestmentAnalytics {
     }
 
     /// @dev callback which must be overridden
-    function iaOnInvested(address /*investor*/, uint /*payment*/, bool /*usingPaymentChannel*/) internal {
+    function iaOnInvested(address /*investor*/, uint256 /*payment*/, bool /*usingPaymentChannel*/) internal {
         assert(false);  // must be overridden
+        m_paymentChannels[0] = address(0); // useles code to suppress solc warning
     }
 
 
-    function paymentChannelsCount() external constant returns (uint) {
+    function paymentChannelsCount() external view returns (uint256) {
         return m_paymentChannels.length;
     }
 
-    function readAnalyticsMap() external constant returns (address[], uint[]) {
+    function readAnalyticsMap() external view returns (address[], uint256[]) {
         address[] memory keys = new address[](m_paymentChannels.length);
-        uint[] memory values = new uint[](m_paymentChannels.length);
+        uint256[] memory values = new uint256[](m_paymentChannels.length);
 
-        for (uint i = 0; i < m_paymentChannels.length; i++) {
+        for (uint256 i = 0; i < m_paymentChannels.length; i++) {
             address key = m_paymentChannels[i];
             keys[i] = key;
             values[i] = m_investmentsByPaymentChannel[key];
@@ -106,7 +107,7 @@ contract InvestmentAnalytics {
         return (keys, values);
     }
 
-    function readPaymentChannels() external constant returns (address[]) {
+    function readPaymentChannels() external view returns (address[]) {
         return m_paymentChannels;
     }
 
