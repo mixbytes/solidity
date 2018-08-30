@@ -7,16 +7,16 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../../crowdsale/InvestmentAnalytics.sol';
 
 
 contract InvestmentAnalyticsTestHelper is InvestmentAnalytics {
-    function createMorePaymentChannels(uint limit) external returns (uint) {
+    function createMorePaymentChannels(uint256 limit) external returns (uint256) {
         return createMorePaymentChannelsInternal(limit);
     }
 
-    function iaOnInvested(address /*investor*/, uint /*payment*/, bool /*usingPaymentChannel*/) internal {
+    function iaOnInvested(address /*investor*/, uint256 /*payment*/, bool /*usingPaymentChannel*/) internal {
     }
 }

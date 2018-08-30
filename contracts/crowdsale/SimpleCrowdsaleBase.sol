@@ -7,23 +7,48 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../security/ArgumentsChecker.sol';
 import '../token/MintableToken.sol';
 import './IInvestmentsWalletConnector.sol';
 import './ICrowdsaleStat.sol';
-import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
-import 'zeppelin-solidity/contracts/math/SafeMath.sol';
+import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
+import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
+contract ISimpleCrowdsaleBase {
+  /// @dev says if crowdsale time bounds must be checked
+  function mustApplyTimeCheck(address /*investor*/, uint256 /*payment*/) view internal returns (bool);
+
+  /// @notice whether to apply hard cap check logic via getMaximumFunds() method 
+  function hasHardCap() view internal returns (bool);
+
+  /// @notice maximum investments to be accepted during pre-ICO
+  function getMaximumFunds() internal view returns (uint256);
+
+  /// @notice minimum amount of funding to consider crowdsale as successful
+  function getMinimumFunds() internal view returns (uint256);
+
+  /// @notice start time of the pre-ICO
+  function getStartTime() internal view returns (uint256);
+
+  /// @notice end time of the pre-ICO
+  function getEndTime() internal view returns (uint256);
+
+  /// @notice minimal amount of investment
+  function getMinInvestment() public view returns (uint256);
+
+  /// @dev calculates token amount for given investment
+  function calculateTokens(address investor, uint256 payment, uint256 extraBonuses) internal view returns (uint256);
+}
 
 /// @title Base contract for simple crowdsales
-contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsWalletConnector, ICrowdsaleStat {
+contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsWalletConnector, ICrowdsaleStat, ISimpleCrowdsaleBase {
     using SafeMath for uint256;
 
-    event FundTransfer(address backer, uint amount, bool isContribution);
+    event FundTransfer(address backer, uint256 amount, bool isContribution);
 
-    function SimpleCrowdsaleBase(address token)
+    constructor (address token)
         public
         validAddress(token)
     {
@@ -48,7 +73,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     // INTERNAL
 
     /// @dev payment processing
-    function buyInternal(address investor, uint payment, uint extraBonuses)
+    function buyInternal(address investor, uint256 payment, uint256 extraBonuses)
         internal
         nonReentrant
     {
@@ -63,13 +88,13 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
             return;
         }
 
-        uint startingWeiCollected = getWeiCollected();
-        uint startingInvariant = this.balance.add(startingWeiCollected);
+        uint256 startingWeiCollected = getWeiCollected();
+        uint256 startingInvariant = address(this).balance.add(startingWeiCollected);
 
-        uint change;
+        uint256 change;
         if (hasHardCap()) {
             // return or update payment if needed
-            uint paymentAllowed = getMaximumFunds().sub(getWeiCollected());
+            uint256 paymentAllowed = getMaximumFunds().sub(getWeiCollected());
             assert(0 != paymentAllowed);
 
             if (paymentAllowed < payment) {
@@ -79,14 +104,14 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
         }
 
         // issue tokens
-        uint tokens = calculateTokens(investor, payment, extraBonuses);
+        uint256 tokens = calculateTokens(investor, payment, extraBonuses);
         m_token.mint(investor, tokens);
         m_tokensMinted += tokens;
 
         // record payment
         storeInvestment(investor, payment);
         assert((!hasHardCap() || getWeiCollected() <= getMaximumFunds()) && getWeiCollected() > startingWeiCollected);
-        FundTransfer(investor, payment, true);
+        emit FundTransfer(investor, payment, true);
 
         if (hasHardCap() && getWeiCollected() == getMaximumFunds())
             finish();
@@ -94,7 +119,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
         if (change > 0)
             investor.transfer(change);
 
-        assert(startingInvariant == this.balance.add(getWeiCollected()).add(change));
+        assert(startingInvariant == address(this).balance.add(getWeiCollected()).add(change));
     }
 
     function finish() internal {
@@ -113,49 +138,36 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     // Other pluggables
 
     /// @dev says if crowdsale time bounds must be checked
-    function mustApplyTimeCheck(address /*investor*/, uint /*payment*/) constant internal returns (bool) {
+    function mustApplyTimeCheck(address /*investor*/, uint256 /*payment*/) view internal returns (bool) {
         return true;
     }
 
     /// @notice whether to apply hard cap check logic via getMaximumFunds() method 
-    function hasHardCap() constant internal returns (bool) {
+    function hasHardCap() view internal returns (bool) {
         return getMaximumFunds() != 0;
     }
 
     /// @dev to be overridden in tests
-    function getCurrentTime() internal constant returns (uint) {
+    function getCurrentTime() internal view returns (uint256) {
         return now;
     }
 
-    /// @notice maximum investments to be accepted during pre-ICO
-    function getMaximumFunds() internal constant returns (uint);
-
-    /// @notice minimum amount of funding to consider crowdsale as successful
-    function getMinimumFunds() internal constant returns (uint);
-
-    /// @notice start time of the pre-ICO
-    function getStartTime() internal constant returns (uint);
-
-    /// @notice end time of the pre-ICO
-    function getEndTime() internal constant returns (uint);
 
     /// @notice minimal amount of investment
-    function getMinInvestment() public constant returns (uint) {
+    function getMinInvestment() public view returns (uint256) {
         return 10 finney;
     }
 
-    /// @dev calculates token amount for given investment
-    function calculateTokens(address investor, uint payment, uint extraBonuses) internal constant returns (uint);
 
 
     // ICrowdsaleStat
 
-    function getWeiCollected() public constant returns (uint) {
+    function getWeiCollected() public view returns (uint256) {
         return getTotalInvestmentsStored();
     }
 
     /// @notice amount of tokens minted (NOT equal to totalSupply() in case token is reused!)
-    function getTokenMinted() public constant returns (uint) {
+    function getTokenMinted() public view returns (uint256) {
         return m_tokensMinted;
     }
 
@@ -165,7 +177,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     /// @dev contract responsible for token accounting
     MintableToken public m_token;
 
-    uint m_tokensMinted;
+    uint256 m_tokensMinted;
 
     bool m_finished = false;
 }

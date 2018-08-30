@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import './IInvestmentsWalletConnector.sol';
 import '../security/ArgumentsChecker.sol';
@@ -19,7 +19,7 @@ import '../security/ArgumentsChecker.sol';
  */
 contract ExternalAccountWalletConnector is ArgumentsChecker, IInvestmentsWalletConnector {
 
-    function ExternalAccountWalletConnector(address accountAddress)
+    constructor (address accountAddress)
         public
         validAddress(accountAddress)
     {
@@ -27,14 +27,14 @@ contract ExternalAccountWalletConnector is ArgumentsChecker, IInvestmentsWalletC
     }
 
     /// @dev process and forward investment
-    function storeInvestment(address /*investor*/, uint payment) internal
+    function storeInvestment(address /*investor*/, uint256 payment) internal
     {
         m_wcStored += payment;
         m_walletAddress.transfer(payment);
     }
 
     /// @dev total investments amount stored using storeInvestment()
-    function getTotalInvestmentsStored() internal constant returns (uint)
+    function getTotalInvestmentsStored() internal view returns (uint256)
     {
         return m_wcStored;
     }
@@ -51,5 +51,5 @@ contract ExternalAccountWalletConnector is ArgumentsChecker, IInvestmentsWalletC
     address public m_walletAddress;
 
     /// @notice total investments stored to wallet
-    uint public m_wcStored;
+    uint256 public m_wcStored;
 }

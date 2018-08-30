@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../../crowdsale/FundsRegistry.sol';
 
@@ -15,7 +15,7 @@ import '../../crowdsale/FundsRegistry.sol';
 /// @title DONT use it in production! Its a test helper which can burn money.
 contract FundsRegistryTestHelper is FundsRegistry {
 
-    function FundsRegistryTestHelper(address[] _owners, uint _signaturesRequired, address _controller)
+    constructor (address[] _owners, uint256 _signaturesRequired, address _controller)
         public
         FundsRegistry(_owners, _signaturesRequired, _controller)
     {

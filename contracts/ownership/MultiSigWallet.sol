@@ -7,11 +7,11 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import './multiowned.sol';
 import './SimpleMultiSigWallet.sol';
-import 'zeppelin-solidity/contracts/token/ERC20Basic.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/ERC20Basic.sol';
 
 
 /**
@@ -21,7 +21,7 @@ contract MultiSigWallet is SimpleMultiSigWallet {
 
     // EVENTS
 
-    event TokensSent(address token, address indexed to, uint value);
+    event TokensSent(address token, address indexed to, uint256 value);
 
 
     // MODIFIERS
@@ -34,21 +34,21 @@ contract MultiSigWallet is SimpleMultiSigWallet {
 
     // PUBLIC FUNCTIONS
 
-    function MultiSigWallet(address[] _owners, uint _signaturesRequired, uint _thawTs)
+    constructor (address[] _owners, uint256 _signaturesRequired, uint256 _thawTs)
         public
         SimpleMultiSigWallet(_owners, _signaturesRequired)
     {
         m_thawTs = _thawTs;
     }
 
-    function sendEther(address to, uint value)
+    function sendEther(address to, uint256 value)
         public
         notFrozen
     {
         super.sendEther(to, value);
     }
 
-    function sendTokens(address token, address to, uint value)
+    function sendTokens(address token, address to, uint256 value)
         public
         notFrozen
         onlymanyowners(keccak256(msg.data))
@@ -60,7 +60,7 @@ contract MultiSigWallet is SimpleMultiSigWallet {
         require(isContract(token));
 
         if (ERC20Basic(token).transfer(to, value)) {
-            TokensSent(token, to, value);
+            emit TokensSent(token, to, value);
             return true;
         }
 
@@ -74,7 +74,7 @@ contract MultiSigWallet is SimpleMultiSigWallet {
         return ERC20Basic(token).balanceOf(this);
     }
 
-    function frozenUntil() public view returns (uint) {
+    function frozenUntil() public view returns (uint256) {
         return m_thawTs;
     }
 
@@ -86,17 +86,17 @@ contract MultiSigWallet is SimpleMultiSigWallet {
         view
         returns (bool hasCode)
     {
-        uint length;
+        uint256 length;
         assembly { length := extcodesize(_addr) }
         return length > 0;
     }
 
-    function getCurrentTime() internal view returns (uint) {
+    function getCurrentTime() internal view returns (uint256) {
         return now;
     }
 
 
     // FIELDS
 
-    uint private m_thawTs;
+    uint256 private m_thawTs;
 }

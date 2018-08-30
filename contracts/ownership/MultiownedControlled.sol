@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import './multiowned.sol';
 
@@ -35,26 +35,26 @@ contract MultiownedControlled is multiowned {
 
     // PUBLIC interface
 
-    function MultiownedControlled(address[] _owners, uint _signaturesRequired, address _controller)
+    constructor (address[] _owners, uint256 _signaturesRequired, address _controller)
         public
         multiowned(_owners, _signaturesRequired)
     {
         m_controller = _controller;
-        ControllerSet(m_controller);
+        emit ControllerSet(m_controller);
     }
 
     /// @dev sets the controller
     function setController(address _controller) external onlymanyowners(keccak256(msg.data)) {
         require(m_attaching_enabled);
         m_controller = _controller;
-        ControllerSet(m_controller);
+        emit ControllerSet(m_controller);
     }
 
     /// @dev ability for controller to step down
     function detachController() external onlyController {
         address was = m_controller;
         m_controller = address(0);
-        ControllerRetired(was);
+        emit ControllerRetired(was);
     }
 
     /// @dev ability for controller to step down and make this contract completely automatic (without third-party control)
@@ -63,7 +63,7 @@ contract MultiownedControlled is multiowned {
         address was = m_controller;
         m_controller = address(0);
         m_attaching_enabled = false;
-        ControllerRetiredForever(was);
+        emit ControllerRetiredForever(was);
     }
 
 

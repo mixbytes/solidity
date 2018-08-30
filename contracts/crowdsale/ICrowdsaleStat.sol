@@ -7,7 +7,7 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 /**
  * @title Basic crowdsale stat
@@ -16,8 +16,8 @@ pragma solidity ^0.4.15;
 contract ICrowdsaleStat {
 
     /// @notice amount of funds collected in wei
-    function getWeiCollected() public constant returns (uint);
+    function getWeiCollected() public view returns (uint256);
 
     /// @notice amount of tokens minted (NOT equal to totalSupply() in case token is reused!)
-    function getTokenMinted() public constant returns (uint);
+    function getTokenMinted() public view returns (uint256);
 }

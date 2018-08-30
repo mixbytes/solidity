@@ -7,9 +7,9 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
-import 'zeppelin-solidity/contracts/token/StandardToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/StandardToken.sol';
 
 
 /// @title StandardToken which circulation can be delayed and started by another contract.
@@ -47,7 +47,7 @@ contract CirculatingToken is StandardToken {
             return false;
 
         m_isCirculating = true;
-        CirculationEnabled();
+        emit CirculationEnabled();
         return true;
     }
 

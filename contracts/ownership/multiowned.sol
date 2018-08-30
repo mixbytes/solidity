@@ -19,28 +19,28 @@
 // some number (specified in constructor) of the set of owners (specified in the constructor, modifiable) before the
 // interior is executed.
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 
 /// note: during any ownership changes all pending operations (waiting for more signatures) are cancelled
 // TODO acceptOwnership
 contract multiowned {
 
-	// TYPES
+    // TYPES
 
     // struct for the status of a pending operation.
     struct MultiOwnedOperationPendingState {
         // count of confirmations needed
-        uint yetNeeded;
+        uint256 yetNeeded;
 
         // bitmap of confirmations where owner #ownerIndex's decision corresponds to 2**ownerIndex bit
-        uint ownersDone;
+        uint256 ownersDone;
 
         // position of this operation key in m_multiOwnedPendingIndex
-        uint index;
+        uint256 index;
     }
 
-	// EVENTS
+    // EVENTS
 
     event Confirmation(address owner, bytes32 operation);
     event Revoke(address owner, bytes32 operation);
@@ -52,9 +52,9 @@ contract multiowned {
     event OwnerRemoved(address oldOwner);
 
     // the last one is emitted if the required signatures change
-    event RequirementChanged(uint newRequirement);
+    event RequirementChanged(uint256 newRequirement);
 
-	// MODIFIERS
+    // MODIFIERS
 
     // simple single-sig function modifier.
     modifier onlyowner {
@@ -73,12 +73,12 @@ contract multiowned {
         // But, confirmAndCheck itself will throw in case sender is not an owner.
     }
 
-    modifier validNumOwners(uint _numOwners) {
+    modifier validNumOwners(uint256 _numOwners) {
         require(_numOwners > 0 && _numOwners <= c_maxOwners);
         _;
     }
 
-    modifier multiOwnedValidRequirement(uint _required, uint _numOwners) {
+    modifier multiOwnedValidRequirement(uint256 _required, uint256 _numOwners) {
         require(_required > 0 && _required <= _numOwners);
         _;
     }
@@ -98,11 +98,11 @@ contract multiowned {
         _;
     }
 
-	// METHODS
+    // METHODS
 
     // constructor is given number of sigs required to do protected "onlymanyowners" transactions
     // as well as the selection of addresses capable of confirming them (msg.sender is not added to the owners!).
-    function multiowned(address[] _owners, uint _required)
+    constructor (address[] _owners, uint256 _required)
         public
         validNumOwners(_owners.length)
         multiOwnedValidRequirement(_required, _owners.length)
@@ -112,13 +112,13 @@ contract multiowned {
         m_numOwners = _owners.length;
         m_multiOwnedRequired = _required;
 
-        for (uint i = 0; i < _owners.length; ++i)
+        for (uint256 i = 0; i < _owners.length; ++i)
         {
             address owner = _owners[i];
             // invalid and duplicate addresses are not allowed
             require(0 != owner && !isOwner(owner) /* not isOwner yet! */);
 
-            uint currentOwnerIndex = checkOwnerIndex(i + 1 /* first slot is unused */);
+            uint256 currentOwnerIndex = checkOwnerIndex(i + 1 /* first slot is unused */);
             m_owners[currentOwnerIndex] = owner;
             m_ownerIndex[owner] = currentOwnerIndex;
         }
@@ -139,13 +139,13 @@ contract multiowned {
         assertOwnersAreConsistent();
 
         clearPending();
-        uint ownerIndex = checkOwnerIndex(m_ownerIndex[_from]);
+        uint256 ownerIndex = checkOwnerIndex(m_ownerIndex[_from]);
         m_owners[ownerIndex] = _to;
         m_ownerIndex[_from] = 0;
         m_ownerIndex[_to] = ownerIndex;
 
         assertOwnersAreConsistent();
-        OwnerChanged(_from, _to);
+        emit OwnerChanged(_from, _to);
     }
 
     /// @notice adds an owner
@@ -165,7 +165,7 @@ contract multiowned {
         m_ownerIndex[_owner] = checkOwnerIndex(m_numOwners);
 
         assertOwnersAreConsistent();
-        OwnerAdded(_owner);
+        emit OwnerAdded(_owner);
     }
 
     /// @notice removes an owner
@@ -181,40 +181,40 @@ contract multiowned {
         assertOwnersAreConsistent();
 
         clearPending();
-        uint ownerIndex = checkOwnerIndex(m_ownerIndex[_owner]);
+        uint256 ownerIndex = checkOwnerIndex(m_ownerIndex[_owner]);
         m_owners[ownerIndex] = 0;
         m_ownerIndex[_owner] = 0;
         //make sure m_numOwners is equal to the number of owners and always points to the last owner
         reorganizeOwners();
 
         assertOwnersAreConsistent();
-        OwnerRemoved(_owner);
+        emit OwnerRemoved(_owner);
     }
 
     /// @notice changes the required number of owner signatures
     /// @param _newRequired new number of signatures required
     // All pending operations will be canceled!
-    function changeRequirement(uint _newRequired)
+    function changeRequirement(uint256 _newRequired)
         external
         multiOwnedValidRequirement(_newRequired, m_numOwners)
         onlymanyowners(keccak256(msg.data))
     {
         m_multiOwnedRequired = _newRequired;
         clearPending();
-        RequirementChanged(_newRequired);
+        emit RequirementChanged(_newRequired);
     }
 
     /// @notice Gets an owner by 0-indexed position
     /// @param ownerIndex 0-indexed owner position
-    function getOwner(uint ownerIndex) public constant returns (address) {
+    function getOwner(uint256 ownerIndex) public view returns (address) {
         return m_owners[ownerIndex + 1];
     }
 
     /// @notice Gets owners
     /// @return memory array of owners
-    function getOwners() public constant returns (address[]) {
+    function getOwners() public view returns (address[]) {
         address[] memory result = new address[](m_numOwners);
-        for (uint i = 0; i < m_numOwners; i++)
+        for (uint256 i = 0; i < m_numOwners; i++)
             result[i] = getOwner(i);
 
         return result;
@@ -223,7 +223,7 @@ contract multiowned {
     /// @notice checks if provided address is an owner address
     /// @param _addr address to check
     /// @return true if it's an owner
-    function isOwner(address _addr) public constant returns (bool) {
+    function isOwner(address _addr) public view returns (bool) {
         return m_ownerIndex[_addr] > 0;
     }
 
@@ -231,7 +231,7 @@ contract multiowned {
     /// @return true if it's an owner
     // It's advisable to call it by new owner to make sure that the same erroneous address is not copy-pasted to
     // addOwner/changeOwner and to isOwner.
-    function amIOwner() external constant onlyowner returns (bool) {
+    function amIOwner() external view onlyowner returns (bool) {
         return true;
     }
 
@@ -242,8 +242,8 @@ contract multiowned {
         multiOwnedOperationIsActive(_operation)
         onlyowner
     {
-        uint ownerIndexBit = makeOwnerBitmapBit(msg.sender);
-        var pending = m_multiOwnedPending[_operation];
+        uint256 ownerIndexBit = makeOwnerBitmapBit(msg.sender);
+        MultiOwnedOperationPendingState storage pending = m_multiOwnedPending[_operation];
         require(pending.ownersDone & ownerIndexBit > 0);
 
         assertOperationIsConsistent(_operation);
@@ -252,7 +252,7 @@ contract multiowned {
         pending.ownersDone -= ownerIndexBit;
 
         assertOperationIsConsistent(_operation);
-        Revoke(msg.sender, _operation);
+        emit Revoke(msg.sender, _operation);
     }
 
     /// @notice Checks if owner confirmed given operation
@@ -260,7 +260,7 @@ contract multiowned {
     /// @param _owner an owner address
     function hasConfirmed(bytes32 _operation, address _owner)
         external
-        constant
+        view
         multiOwnedOperationIsActive(_operation)
         ownerExists(_owner)
         returns (bool)
@@ -282,7 +282,7 @@ contract multiowned {
             // TODO use more graceful approach like compact or removal of clearPending completely
             clearPending();
 
-        var pending = m_multiOwnedPending[_operation];
+        MultiOwnedOperationPendingState storage pending = m_multiOwnedPending[_operation];
 
         // if we're not yet working on this operation, switch over and reset the confirmation status.
         if (! isOperationActive(_operation)) {
@@ -296,7 +296,7 @@ contract multiowned {
         }
 
         // determine the bit to set for this owner.
-        uint ownerIndexBit = makeOwnerBitmapBit(msg.sender);
+        uint256 ownerIndexBit = makeOwnerBitmapBit(msg.sender);
         // make sure we (the message sender) haven't confirmed this operation previously.
         if (pending.ownersDone & ownerIndexBit == 0) {
             // ok - check if count is enough to go ahead.
@@ -305,7 +305,7 @@ contract multiowned {
                 // enough confirmations: reset and run interior.
                 delete m_multiOwnedPendingIndex[m_multiOwnedPending[_operation].index];
                 delete m_multiOwnedPending[_operation];
-                FinalConfirmation(msg.sender, _operation);
+                emit FinalConfirmation(msg.sender, _operation);
                 return true;
             }
             else
@@ -314,7 +314,7 @@ contract multiowned {
                 pending.yetNeeded--;
                 pending.ownersDone |= ownerIndexBit;
                 assertOperationIsConsistent(_operation);
-                Confirmation(msg.sender, _operation);
+                emit Confirmation(msg.sender, _operation);
             }
         }
     }
@@ -322,7 +322,7 @@ contract multiowned {
     // Reclaims free slots between valid owners in m_owners.
     // TODO given that its called after each removal, it could be simplified.
     function reorganizeOwners() private {
-        uint free = 1;
+        uint256 free = 1;
         while (free < m_numOwners)
         {
             // iterating to the first free slot from the beginning
@@ -343,55 +343,55 @@ contract multiowned {
     }
 
     function clearPending() private onlyowner {
-        uint length = m_multiOwnedPendingIndex.length;
+        uint256 length = m_multiOwnedPendingIndex.length;
         // TODO block gas limit
-        for (uint i = 0; i < length; ++i) {
+        for (uint256 i = 0; i < length; ++i) {
             if (m_multiOwnedPendingIndex[i] != 0)
                 delete m_multiOwnedPending[m_multiOwnedPendingIndex[i]];
         }
         delete m_multiOwnedPendingIndex;
     }
 
-    function checkOwnerIndex(uint ownerIndex) private pure returns (uint) {
+    function checkOwnerIndex(uint256 ownerIndex) private pure returns (uint256) {
         assert(0 != ownerIndex && ownerIndex <= c_maxOwners);
         return ownerIndex;
     }
 
-    function makeOwnerBitmapBit(address owner) private constant returns (uint) {
-        uint ownerIndex = checkOwnerIndex(m_ownerIndex[owner]);
+    function makeOwnerBitmapBit(address owner) private view returns (uint256) {
+        uint256 ownerIndex = checkOwnerIndex(m_ownerIndex[owner]);
         return 2 ** ownerIndex;
     }
 
-    function isOperationActive(bytes32 _operation) private constant returns (bool) {
+    function isOperationActive(bytes32 _operation) private view returns (bool) {
         return 0 != m_multiOwnedPending[_operation].yetNeeded;
     }
 
 
-    function assertOwnersAreConsistent() private constant {
+    function assertOwnersAreConsistent() private view {
         assert(m_numOwners > 0);
         assert(m_numOwners <= c_maxOwners);
         assert(m_owners[0] == 0);
         assert(0 != m_multiOwnedRequired && m_multiOwnedRequired <= m_numOwners);
     }
 
-    function assertOperationIsConsistent(bytes32 _operation) private constant {
-        var pending = m_multiOwnedPending[_operation];
+    function assertOperationIsConsistent(bytes32 _operation) private view {
+        MultiOwnedOperationPendingState storage pending = m_multiOwnedPending[_operation];
         assert(0 != pending.yetNeeded);
         assert(m_multiOwnedPendingIndex[pending.index] == _operation);
         assert(pending.yetNeeded <= m_multiOwnedRequired);
     }
 
 
-   	// FIELDS
+    // FIELDS
 
-    uint constant c_maxOwners = 250;
+    uint256 constant c_maxOwners = 250;
 
     // the number of owners that must confirm the same operation before it is run.
-    uint public m_multiOwnedRequired;
+    uint256 public m_multiOwnedRequired;
 
 
     // pointer used to find a free slot in m_owners
-    uint public m_numOwners;
+    uint256 public m_numOwners;
 
     // list of owners (addresses),
     // slot 0 is unused so there are no owner which index is 0.
@@ -399,7 +399,7 @@ contract multiowned {
     address[256] internal m_owners;
 
     // index on the list of owners to allow reverse lookup: owner address => index in m_owners
-    mapping(address => uint) internal m_ownerIndex;
+    mapping(address => uint256) internal m_ownerIndex;
 
 
     // the ongoing operations.
