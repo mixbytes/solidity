@@ -1,6 +1,6 @@
 'use strict';
 
-import expectThrow from '../helpers/expectThrow';
+import expectThrow from 'openzeppelin-solidity/test/helpers/expectThrow';
 
 const DividendTokenTestHelper = artifacts.require("../test_helpers/token/DividendTokenTestHelper.sol");
 // Some contract that can't accept ether

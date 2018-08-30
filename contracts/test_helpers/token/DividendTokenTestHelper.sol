@@ -7,15 +7,15 @@
 // distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND (express or implied).
 
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import '../../token/DividendToken.sol';
-import 'zeppelin-solidity/contracts/token/MintableToken.sol';
+import 'openzeppelin-solidity/contracts/token/ERC20/MintableToken.sol';
 
 
 /// @title Test helper for MintableMultiownedToken, DONT use it in production!
 contract DividendTokenTestHelper is DividendToken, MintableToken {
-    event EmissionHappened(uint totalSupply, uint totalBalanceWas);
+    event EmissionHappened(uint256 totalSupply, uint256 totalBalanceWas);
 
     string public constant name = 'DVDND';
     string public constant symbol = 'DVDND';
@@ -27,15 +27,15 @@ contract DividendTokenTestHelper is DividendToken, MintableToken {
         bool res = super.mint(_to, _amount);
 
         m_emissions.push(EmissionInfo({
-            totalSupply: totalSupply,
+            totalSupply: totalSupply(),
             totalBalanceWas: m_totalDividends
         }));
 
-        EmissionHappened(totalSupply, m_totalDividends);
+        emit EmissionHappened(totalSupply(), m_totalDividends);
         return res;
     }
 
-    function getMaxIterationsForRequestDividends() internal constant returns (uint256) {
+    function getMaxIterationsForRequestDividends() internal pure returns (uint256) {
         return 9;
     }
 }
