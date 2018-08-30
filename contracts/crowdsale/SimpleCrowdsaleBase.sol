@@ -16,9 +16,34 @@ import './ICrowdsaleStat.sol';
 import 'openzeppelin-solidity/contracts/ReentrancyGuard.sol';
 import 'openzeppelin-solidity/contracts/math/SafeMath.sol';
 
+contract ISimpleCrowdsaleBase {
+  /// @dev says if crowdsale time bounds must be checked
+  function mustApplyTimeCheck(address /*investor*/, uint256 /*payment*/) view internal returns (bool);
+
+  /// @notice whether to apply hard cap check logic via getMaximumFunds() method 
+  function hasHardCap() view internal returns (bool);
+
+  /// @notice maximum investments to be accepted during pre-ICO
+  function getMaximumFunds() internal view returns (uint256);
+
+  /// @notice minimum amount of funding to consider crowdsale as successful
+  function getMinimumFunds() internal view returns (uint256);
+
+  /// @notice start time of the pre-ICO
+  function getStartTime() internal view returns (uint256);
+
+  /// @notice end time of the pre-ICO
+  function getEndTime() internal view returns (uint256);
+
+  /// @notice minimal amount of investment
+  function getMinInvestment() public view returns (uint256);
+
+  /// @dev calculates token amount for given investment
+  function calculateTokens(address investor, uint256 payment, uint256 extraBonuses) internal view returns (uint256);
+}
 
 /// @title Base contract for simple crowdsales
-contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsWalletConnector, ICrowdsaleStat {
+contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsWalletConnector, ICrowdsaleStat, ISimpleCrowdsaleBase {
     using SafeMath for uint256;
 
     event FundTransfer(address backer, uint256 amount, bool isContribution);
@@ -113,7 +138,7 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
     // Other pluggables
 
     /// @dev says if crowdsale time bounds must be checked
-    function mustApplyTimeCheck(address /*investor*/, uint256 /*payment*/) pure internal returns (bool) {
+    function mustApplyTimeCheck(address /*investor*/, uint256 /*payment*/) view internal returns (bool) {
         return true;
     }
 
@@ -127,25 +152,12 @@ contract SimpleCrowdsaleBase is ArgumentsChecker, ReentrancyGuard, IInvestmentsW
         return now;
     }
 
-    /// @notice maximum investments to be accepted during pre-ICO
-    function getMaximumFunds() internal view returns (uint256);
-
-    /// @notice minimum amount of funding to consider crowdsale as successful
-    function getMinimumFunds() internal view returns (uint256);
-
-    /// @notice start time of the pre-ICO
-    function getStartTime() internal view returns (uint256);
-
-    /// @notice end time of the pre-ICO
-    function getEndTime() internal view returns (uint256);
 
     /// @notice minimal amount of investment
-    function getMinInvestment() public pure returns (uint256) {
+    function getMinInvestment() public view returns (uint256) {
         return 10 finney;
     }
 
-    /// @dev calculates token amount for given investment
-    function calculateTokens(address investor, uint256 payment, uint256 extraBonuses) internal view returns (uint256);
 
 
     // ICrowdsaleStat
