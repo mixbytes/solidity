@@ -99,7 +99,7 @@ contract DividendToken is StandardToken, Ownable {
 
     /// @dev calculates dividends for the account _for
     /// @return (true if state has to be updated, dividend amount (could be 0!), lastProcessedEmissionNum)
-    function calculateDividendsFor(address _for) constant internal returns (
+    function calculateDividendsFor(address _for) view internal returns (
         bool hasNewDividends,
         uint256 dividends,
         uint256 lastProcessedEmissionNum
@@ -154,7 +154,7 @@ contract DividendToken is StandardToken, Ownable {
         return (true, dividends, lastAccountEmissionNum);
     }
 
-    function getLastEmissionNum() private constant returns (uint256) {
+    function getLastEmissionNum() private view returns (uint256) {
         return m_emissions.length - 1;
     }
 
