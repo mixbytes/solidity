@@ -24,6 +24,7 @@
   "license": "Apache-2.0",
   "homepage": "https://mixbytes.io",
   "devDependencies": {
+    "babel-env": "^2.4.1",
     "babel-polyfill": "^6.23.0",
     "babel-preset-env": "^1.7.0",
     "babel-register": "^6.23.0",
