@@ -44,7 +44,7 @@ library FixedTimeBonuses {
         return self.bonuses[self.bonuses.length - 1].endTime;
     }
 
-    /// @dev validates consistency of data structure
+    /// @dev gets bonus for the given time
     /// @param self data structure
     /// @param time time for which bonus must be computed (assuming time <= getLastTime())
     function getBonus(Data storage self, uint256 time) internal view returns (uint256) {
