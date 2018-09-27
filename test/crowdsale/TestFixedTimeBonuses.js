@@ -2,11 +2,7 @@
 
 import {expectThrow} from 'openzeppelin-solidity/test/helpers/expectThrow';
 
-const BigNumber = web3.BigNumber;
-const chai =require('chai');
-chai.use(require('chai-bignumber')(BigNumber));
-chai.use(require('chai-as-promised')); // Order is important
-chai.should();
+import should from '../helpers/chai';
 
 const Bonuses = artifacts.require("Bonuses");
 
